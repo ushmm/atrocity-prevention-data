@@ -1,6 +1,6 @@
 # Guide to Tools for Atrocity Prevention data
 
-The following document describes the "master analysis" R code for "Lessons Learned in Preventing and Responding to Mass Atrocities," a project of the Holocaust Museum's Simon-Skjodt Center for the Prevention of Genocide. 
+The following document annotates the R code for "Lessons Learned in Preventing and Responding to Mass Atrocities," a project of the Holocaust Museum's Simon-Skjodt Center for the Prevention of Genocide. 
 
 Daniel Solomon is the original author of this code. Please direct inquiries about this analysis to cpg@ushmm.org.
 
