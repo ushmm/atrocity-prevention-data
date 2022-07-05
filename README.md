@@ -1,8 +1,4 @@
----
-title: "Master analysis file for USHMM SCPG Lessons-Learned project"
-date: "`r Sys.Date()`"
-output: html_document
----
+# Guide to Tools for Atrocity Prevention data
 
 The following document describes the "master analysis" R code for "Lessons Learned in Preventing and Responding to Mass Atrocities," a project of the Holocaust Museum's Simon-Skjodt Center for the Prevention of Genocide. 
 
