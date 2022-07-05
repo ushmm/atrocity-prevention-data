@@ -2,7 +2,7 @@
 
 The following document describes the "master analysis" R code for "Lessons Learned in Preventing and Responding to Mass Atrocities," a project of the Holocaust Museum's Simon-Skjodt Center for the Prevention of Genocide. 
 
-Daniel Solomon is the original author of this code. To run the code, Please direct inquiries about this analysis to cpg@ushmm.org.
+Daniel Solomon is the original author of this code. Please direct inquiries about this analysis to cpg@ushmm.org.
 
 # Introduction
 
