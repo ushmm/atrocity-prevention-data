@@ -671,7 +671,7 @@ evidence <- evidence %>%
 
 To ensure that researchers can access bibliographic information about each study, we downloaded the citation information for each study using the Zotero reference manager. Readers should note that the Zotero information likely contains typographic errors, both because we did not modify the references data at this stage and because the CSV encoding does not recognize all special characters. 
 
-I combined this reference information with the information in the study-level dataset. 
+I combined this reference information with the information in the study-level dataset. As we note above, the original file *zotero.csv* is too large to upload to Github. Researchers looking to cleanly replicate the below code can contact cpg@ushmm.org to receive the original Zotero file.
 
 ```{r message = FALSE, warning = FALSE}
 
