@@ -12,7 +12,7 @@ To run the full code from this document, remove the "eval = FALSE" command in th
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 ```
 
-The analysis requires the following package:
+The analysis requires the following packages:
 
 ```{r message = FALSE, warning = FALSE}
 library(dplyr)
