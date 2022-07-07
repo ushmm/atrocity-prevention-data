@@ -16,6 +16,7 @@ The analysis requires the following package:
 
 ```{r message = FALSE, warning = FALSE}
 library(dplyr)
+library(stringr)
 ```
 
 I stored the relevant project files in a series of local Google Drive folders. You may download all supporting CSV files from the "Data" folder on this GitHub page. You may download the auxiliary coding files---in particular, the files related to the analytic guide and the practitioner interviews---from the "Auxiliary" folder on this GitHub page.
@@ -109,7 +110,6 @@ excerpts <- excerpts %>%
   subset(Excluded. == 0)
 
 ### remove periods from column names
-library(stringr)
 excerpts <- excerpts %>% 
   rename_all(
     ~str_replace_all(., "\\.", " ")
@@ -686,7 +686,6 @@ references <- read.csv("zotero.csv", encoding = "UTF-8") %>%
   subset(grepl("documentName", Extra))
 
 ### extract list of index names in Extra column, separate those with semicolons
-library(stringr)
 references <- references %>%
   mutate(Extra = str_replace(pattern = "documentName:", 
                                 replacement = "",
