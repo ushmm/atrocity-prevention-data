@@ -1,16 +1,8 @@
-### preamble
-getwd()
-work_dir <- "D:/Google Drive/CPG/Projects/Research/Lessons-Learned/Kyra's Folder/Lessons learned/1. Collecting, Distilling, and Organizing the Knowledge/Empirical Knowledge/4. NEW coding process/Analytic guide"
-setwd(work_dir)
-
-packages <- c("reshape", "plyr", "dplyr", "car", "stargazer", "gridExtra", "olsrr", 
-              "foreign", "ggplot2", "ggmap", "mapsapi", "sf", "sp", "data.table", 
-              "mapdata", "maps", "raster", "rworldmap", "GADMTools", "rgdal", "nngeo", 
-              "mapview", "plm", "gplots", "haven", "lfe", "plm", 
-              "haven", "knitr", "AER", "DataCombine", "jtools", "maptools", "mapdata",
-              "rgeos", "geosphere", "tidyr", "coefplot", "margins", "fuzzyjoin") # combines packages
-lapply(packages, library, character.only = TRUE) # loads all packages in "packages" list
-rm(packages, work_dir)
+### load packages
+library(officer)
+library(naniar)
+library(tidyr)
+library(dplyr)
 
 #######################################################
 
@@ -19,7 +11,6 @@ rm(packages, work_dir)
 #######################################################
 
 ### load Word doc using OFFICER
-library(officer)
 doc_analytic_guide <- read_docx("[for editing] LL analytic guide to coding.docx")
 
 ### Word doc as tibble
