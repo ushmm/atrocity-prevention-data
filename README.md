@@ -58,7 +58,7 @@ You may download all supporting CSV files from the "Data" folder on this GitHub 
 
 - *practitioner_master.R*: The R code for summarizing the practitioner interview data.
 
-- *practitioner_survey.csv*: The data from our interviews with experienced practitioners.
+- *practitioner_survey.csv*: The anonymized data from our interviews with experienced practitioners.
 
 - *zotero.csv*: References information for the files in the *all_sources.csv* document. This file is enormous, but deleting irrelevant bibliographic information was inefficient. The file is too large to post on GitHub; please contact us at cpg@ushmm.org if you require access to it.
 
