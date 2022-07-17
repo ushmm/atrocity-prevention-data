@@ -1,4 +1,8 @@
-# Guide to Tools for Atrocity Prevention data
+---
+title: "Master analysis file for USHMM SCPG Lessons-Learned project"
+date: "`r Sys.Date()`"
+output: html_document
+---
 
 The following document annotates the R code for "Lessons Learned in Preventing and Responding to Mass Atrocities," a project of the Holocaust Museum's Simon-Skjodt Center for the Prevention of Genocide. 
 
@@ -12,14 +16,23 @@ To run the full code from this document, remove the "eval = FALSE" command in th
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 ```
 
-The analysis requires the following packages:
+The analysis requires the following packages. Because these packages are regularly updated, I use the *groundhog* package to associate the code with the package versions that were current as of 13 July 2022---the last date on which I updated the below code.
 
 ```{r message = FALSE, warning = FALSE}
-library(dplyr)
-library(stringr)
+
+library(groundhog)
+
+groundhog.library("dplyr", "2022-07-13")
+groundhog.library("stringr", "2022-07-13")
+groundhog.library("tidyr", "2022-07-13")
+groundhog.library("fuzzyjoin", "2022-07-13")
+groundhog.library("reshape", "2022-07-13")
+groundhog.library("car", "2022-07-13")
 ```
 
-I stored the relevant project files in a series of local Google Drive folders. You may download all supporting CSV files from the "Data" folder on this GitHub page. You may download the auxiliary coding files---in particular, the files related to the analytic guide and the practitioner interviews---from the "Auxiliary" folder on this GitHub page.
+I stored the relevant project files in a series of local Google Drive folders. I also stored the auxiliary R files in separate local Drive folders. Accordingly, those files may take some editing to correspond to your local file directory setup.
+
+You may download all supporting CSV files from the "Data" folder on this GitHub page. You may download the auxiliary coding files---in particular, the files related to the Zotero references, the analytic guide, and the practitioner interviews---from the "Auxiliary" folder on this GitHub page.
 
 ## Guide to files in Data folder
 
@@ -51,13 +64,7 @@ I stored the relevant project files in a series of local Google Drive folders. Y
 
 - *practitioner_survey.csv*: The data from our interviews with experienced practitioners.
 
-- *zotero.csv*: References information for the files in the *all_sources.csv* document. This file is enormous, but deleting irrelevant bibliographic information was inefficient. The file is too large to GitHub; please contact us at cpg@ushmm.org if you require access to it.
-
-```{r message = FALSE, warning = FALSE}
-### set working directory
-work_dir <- "D:/Google Drive/CPG/Projects/Research/Lessons-Learned/Kyra's Folder/Lessons learned/1. Collecting, Distilling, and Organizing the Knowledge/Empirical Knowledge/4. NEW coding process/Analysis"
-setwd(work_dir)
-```
+- *zotero.csv*: References information for the files in the *all_sources.csv* document. This file is enormous, but deleting irrelevant bibliographic information was inefficient. The file is too large to post on GitHub; please contact us at cpg@ushmm.org if you require access to it.
 
 # Load and subset data
 
@@ -65,10 +72,16 @@ Multiple project researchers generated the original data in Dedoose, a qualitati
 
 Below, I detail how I transformed, filtered, and cleaned the Dedoose data for further analysis.
 
-```{r message = FALSE, warning = FALSE}
+```{r message=FALSE, warning=FALSE}
 
 ### load excerpt-level data
-excerpts <- read.csv("excerpts.csv", na.strings = "")
+excerpts <- read.csv("excerpts.csv", na.strings = "", check.names = F) %>%
+  dplyr::select(-309)
+
+### change variable names with spaces to periods
+names(excerpts) <- gsub(x = names(excerpts),
+                        pattern = " ",
+                        replacement = ".") 
 
 ### change "True" and "False" to "1" and "0", respectively
 excerpts[excerpts == "True"] <- 1
@@ -77,6 +90,7 @@ excerpts[excerpts == "False"] <- 0
 ### subset to remove NA rows
 excerpts <- excerpts %>%
   subset(!is.na(Excerpt.Creator))
+
 ```
 
 Because multiple project researchers coded each article, we used an ordered list of coders to filter excerpt codes for further analysis. The ordered list for each article is located in the document *code_guide.csv*. We also used the document *master_codes.csv* to ensure that we had downloaded excerpts from the correct list of codes. To filter out excluded codes, we appended these documents to the original excerpts dataset.
@@ -86,7 +100,7 @@ Because multiple project researchers coded each article, we used an ordered list
 ### code_guide with key to correct coders
 code_guide <- read.csv("code_guide.csv", na.strings = "")
 
-### list of codes, remove Category and Sub.category columns
+### master list of codes, remove Category and Sub.category columns
 codes <- read.csv("master_codes.csv")
 codes[, c("Sub.category", "X")] <- NULL
 
@@ -94,7 +108,7 @@ codes[, c("Sub.category", "X")] <- NULL
 excerpts <- left_join(excerpts, code_guide[, c("article_index", "coder_1", "coder_2", "coder_3", "Excluded.")],
                       by = c("Index.Number" = "article_index"),
                       keep = TRUE)
-
+  
 ### identify correct coders
 excerpts <- excerpts %>%
   mutate(correct_coder = ifelse(article_index == Index.Number & Excerpt.Creator == coder_1, 1, 
@@ -109,11 +123,15 @@ excerpts <- excerpts %>%
 excerpts <- excerpts %>%
   subset(Excluded. == 0)
 
-### remove periods from column names
+### remove periods and backslashes from column names
 excerpts <- excerpts %>% 
-  rename_all(
+  dplyr::rename_all(
     ~str_replace_all(., "\\.", " ")
+  ) %>%
+  dplyr::rename_all(
+    ~str_replace_all(., fixed("\\"), " ")
   )
+
 ```
 
 Because we downloaded the data from Dedoose at the "excerpt" level, I transformed the original excerpts dataset from a "long" format to a "wide," study-level format. As I discuss in the section below, the study-level dataset allowed us to summarize conclusions across studies about the effects of atrocity prevention tools.
@@ -125,9 +143,9 @@ excerpts$excerpt_index <- seq(1:nrow(excerpts))
 
 ### pivot wider to longer
 excerpts_long <- excerpts %>%
-  pivot_longer(cols = starts_with("Code "),
+  pivot_longer(cols = starts_with("Code:"),
                names_to = "code",
-               names_prefix = "Code ",
+               names_prefix = "Code:",
                values_to = "applied")
 
 ### remove extraneous Excerpt Creator, Codes.Applied.Combined, Title, Author, Year, X variables
@@ -147,8 +165,8 @@ excerpts <- subset(excerpts,
 
 ### rename "Index Number" as "Index.Number"
 excerpts <- excerpts %>%
-  rename("Index.Number" = "Index Number",
-         "excerpt_range" = "Excerpt Range")
+  dplyr::rename("Index.Number" = "Index Number",
+                "excerpt_range" = "Excerpt Range")
 
 ### fuzzy join codes to tool dataset
 excerpts_with_codes <- excerpts %>%
@@ -173,6 +191,7 @@ excerpts_wide <- pivot_wider(excerpts,
 excerpts <- excerpts_wide
 
 rm(excerpts_wide)
+
 ```
 
 As we note in the longer description of the project methodology, we collected data about studies in the military intervention literature. However, we observed that a majority of the 44 quantitative studies about military intervention rely on datasets that conflate active combat operations with either (1) peacekeeping operations or (2) security assistance and material support to non-state armed groups. We concluded that we needed more time to sort out the complicated definitional issues associated with this literature, and excluded the military intervention studies from our final review. 
@@ -186,6 +205,7 @@ excerpts <- excerpts %>%
   subset(!grepl("Military Intervention", Index.Number) &
            !grepl("Security Guarantees", Index.Number) &
            !grepl("Fact-Finding", Index.Number))
+
 ```
 
 # Analysis: Overall effects
@@ -193,12 +213,6 @@ excerpts <- excerpts %>%
 The first set of information addresses the overall or average effect of an atrocity prevention tool on mass atrocities or closely-related outcomes---i.e., was the tool associated with higher or lower levels of mass atrocities, or did it have no or mixed effects? In this section, I describe the process by which we summarized relevant studies' conclusions about the overall effects of atrocity prevention tools.
 
 ```{r message = FALSE, warning = FALSE}
-
-######################
-
-### overall effects
-
-######################
 
 ### fill in article-level observations at the excerpt level
 gen_effects <- excerpts %>%
@@ -224,6 +238,7 @@ gen_effects <- gen_effects %>%
                             `Overall effects` == "No measurable effect on mass atrocities or CROs",
                           "No or mixed effects", `Overall effects`)) %>%
   dplyr::select(-`Overall effects`)
+
 ```
 
 I calculated the number of studies about the overall effects of each atrocity prevention tool, separated by the direction of the tool's effect. 
@@ -242,16 +257,17 @@ I also calculated the separate number of studies about the "adverse consequences
 gen_effects$applied <- as.numeric(gen_effects$applied)
 gen_effects <- gen_effects %>%
   group_by(Tool, overall) %>%
-  mutate(count = n())
+  add_tally(name = "count")
 
 ### quantity, separate out adverse consequences
 gen_effects <- gen_effects %>%
   group_by(Tool) %>%
   mutate(adverse_conseq = ifelse(Outcome == "Adverse consequences", 1, 0)) %>%
   group_by(Tool, overall) %>%
-  mutate(count_adverse = sum(adverse_conseq),
-         count_without_adverse = count - count_adverse) %>%
+  add_tally(adverse_conseq, name = "count_adverse") %>%
+  mutate(count_without_adverse = count - count_adverse) %>%
   dplyr::select(-adverse_conseq)
+
 ```
 
 ## Strength of evidence
@@ -274,13 +290,25 @@ gen_effects <- gen_effects %>%
          cro_focus_increase_average = ifelse(Outcome != "Mass atrocities" & grepl("Increases", overall), 1, 0),
          cro_focus_decrease_average = ifelse(Outcome != "Mass atrocities" & grepl("Decreases", overall), 1, 0),
          cro_focus_no_mixed_average = ifelse(Outcome != "Mass atrocities" & grepl("mixed", overall), 1, 0)) %>%
-  group_by(Tool, overall) %>%
-  mutate(ma_focus_increase_count_average = ifelse(sum(ma_focus_increase_average) > 0, sum(ma_focus_increase_average), NA),
-         ma_focus_decrease_count_average = ifelse(sum(ma_focus_decrease_average) > 0, sum(ma_focus_decrease_average), NA),
-         ma_focus_no_mixed_count_average = ifelse(sum(ma_focus_no_mixed_average) > 0, sum(ma_focus_no_mixed_average), NA),
-         cro_focus_increase_count_average = ifelse(sum(cro_focus_increase_average) > 0, sum(cro_focus_increase_average), NA),
-         cro_focus_decrease_count_average = ifelse(sum(cro_focus_decrease_average) > 0, sum(cro_focus_decrease_average), NA),
-         cro_focus_no_mixed_count_average = ifelse(sum(cro_focus_no_mixed_average) > 0, sum(cro_focus_no_mixed_average), NA))
+  mutate(outcome_type = ifelse(Outcome == "Mass atrocities", 1, 0)) %>%
+  group_by(Tool, overall, outcome_type) %>%
+  add_tally(ma_focus_increase_average, name = "ma_focus_increase_count_average") %>%
+  add_tally(ma_focus_decrease_average, name = "ma_focus_decrease_count_average") %>%
+  add_tally(ma_focus_no_mixed_average, name = "ma_focus_no_mixed_count_average") %>%
+  add_tally(cro_focus_increase_average, name = "cro_focus_increase_count_average") %>%
+  add_tally(cro_focus_decrease_average, name = "cro_focus_decrease_count_average") %>%
+  add_tally(cro_focus_no_mixed_average, name = "cro_focus_no_mixed_count_average") %>%
+  ungroup() %>%
+  dplyr::select(-outcome_type)
+
+### replace 0s with NAs
+gen_effects <- gen_effects %>%
+  mutate(ma_focus_increase_count_average = ifelse(ma_focus_increase_count_average == 0, NA, ma_focus_increase_count_average), 
+         ma_focus_decrease_count_average = ifelse(ma_focus_decrease_count_average == 0, NA, ma_focus_decrease_count_average), 
+         ma_focus_no_mixed_count_average = ifelse(ma_focus_no_mixed_count_average == 0, NA, ma_focus_no_mixed_count_average),
+         cro_focus_increase_count_average = ifelse(cro_focus_increase_count_average == 0, NA, cro_focus_increase_count_average), 
+         cro_focus_decrease_count_average = ifelse(cro_focus_decrease_count_average == 0, NA, cro_focus_decrease_count_average), 
+         cro_focus_no_mixed_count_average = ifelse(cro_focus_no_mixed_count_average == 0, NA, cro_focus_no_mixed_count_average))
 
 ### fill in _count NA values
 gen_effects <- gen_effects %>%
@@ -289,7 +317,8 @@ gen_effects <- gen_effects %>%
        cro_focus_increase_count_average, cro_focus_decrease_count_average, cro_focus_no_mixed_count_average) %>%
   fill(ma_focus_increase_count_average, ma_focus_decrease_count_average, ma_focus_no_mixed_count_average, 
        cro_focus_increase_count_average, cro_focus_decrease_count_average, cro_focus_no_mixed_count_average, 
-       .direction = "up")
+       .direction = "up") %>%
+  distinct()
 
 ### replace NAs with 0s
 gen_effects <- gen_effects %>%
@@ -317,7 +346,7 @@ gen_effects <- gen_effects %>%
 ### preliminary sum of vote score, for calculating mixed effects
 gen_effects <- gen_effects %>%
   group_by(Tool) %>%
-  mutate(temp_vote_count_average = sum(vote_average, na.rm = TRUE))
+  add_tally(vote_average, name = "temp_vote_count_average")
 
 ### create vote score for no or mixed effects
 gen_effects <- gen_effects %>%
@@ -330,11 +359,32 @@ gen_effects <- gen_effects %>%
 
 ### vote count
 gen_effects <- gen_effects %>%
+  add_tally(vote_average, name = "vote_count_average") %>%
   mutate(vote_count_average = sum(vote_average)) %>%
   mutate(vote_count_average = ifelse(vote_count_average > 0 & temp_vote_count_average < 0, 0,
                                      ifelse(vote_count_average < 0 & temp_vote_count_average > 0, 0,
                                             vote_count_average))) %>%
   dplyr::select(-temp_vote_count_average)
+
+#######################
+
+### record gen_effects
+
+#######################
+
+### revise "Conflict_outcome" in outcome to read "Conflict"
+gen_effects <- gen_effects %>%
+  mutate(Outcome = ifelse(Outcome == "Conflict_outcome", "Conflict", Outcome))
+
+### add "average" to "effects_type" variable, remove extraneous variables
+gen_effects <- gen_effects %>%
+  mutate(effects_type = rep("Average")) %>%
+  ungroup() %>%
+  dplyr::select(-c(applied, `Factor effects`, CD)) %>%
+  relocate(effects_type) %>%
+  relocate(Gender, Publication, Empirical, Qual, Quant, Method, 
+           .after = Year)
+
 ```
 
 Although we do not present the results of the overall effects separately, we include the final results in the *all_sources.csv* file that I export below. 
@@ -353,12 +403,13 @@ gen_effects <- gen_effects %>%
 
 ### add "average" to "effects_type" variable, remove extraneous variables
 gen_effects <- gen_effects %>%
-  mutate(effects_type = rep("Average", n())) %>%
+  mutate(effects_type = rep("Average")) %>%
   ungroup() %>%
   dplyr::select(-c(applied, `Factor effects`, CD)) %>%
   relocate(effects_type) %>%
   relocate(Gender, Publication, Empirical, Qual, Quant, Method, 
            .after = Year)
+
 ```
 
 # Analysis: Contextual and design (C&D) factors
@@ -366,12 +417,6 @@ gen_effects <- gen_effects %>%
 The second set of information addresses the contextual or design factors that were associated with greater or lesser effectiveness of the atrocity prevention tool. This information is the central focus of the project's Tools for Atrocity Prevention website. In this section, I describe the process by which we summarized relevant studies' conclusions about the "factor effects" associated with atrocity prevention tools.
 
 ```{r message = FALSE, warning = FALSE}
-
-#####################
-
-### C&D factors
-
-#####################
 
 ### create strength of evidence dataframe
 evidence <- excerpts %>%
@@ -394,6 +439,7 @@ evidence$applied <- as.numeric(evidence$applied)
 ### remove rows with CD values with NA (former codes not found)
 evidence <- evidence %>%
   subset(!is.na(CD))
+
 ```
 
 I calculated the number of studies about the factor effects associated with each tool. As above, I also calculated the separate number of studies about the "adverse consequences" associated with each factor effect. 
@@ -409,15 +455,16 @@ I calculated the number of studies about the factor effects associated with each
 ### quantity, aggregated by Tool + C&D factor
 evidence <- evidence %>%
   group_by(Tool, CD) %>%
-  mutate(count = sum(applied))
+  add_tally(applied, name = "count")
 
 ### quantity, separate out adverse consequences
 evidence <- evidence %>%
   mutate(adverse_conseq = ifelse(Outcome == "Adverse consequences", 1, 0)) %>%
   group_by(Tool, CD) %>%
-  mutate(count_adverse = sum(adverse_conseq),
-         count_without_adverse = count - count_adverse) %>%
+  add_tally(adverse_conseq, name = "count_adverse") %>%
+  mutate(count_without_adverse = count - count_adverse) %>%
   dplyr::select(-adverse_conseq)
+
 ```
 
 ## Distribution of findings
@@ -426,12 +473,6 @@ I calculated the distribution of findings about factor effects---i.e., whether t
 
 ```{r message = FALSE, warning = FALSE}
 
-#####################
-
-### distribution of findings (C&D)
-
-#####################
-
 ### separate dataframe for article_index (to be merged with factors below after calculating vote_count)
 article_level <- evidence %>%
   dplyr::select(Index.Number, Tool, Year, CD, Outcome, `Factor effects`,
@@ -439,13 +480,13 @@ article_level <- evidence %>%
 
 ### change factor effects variable name + conflict outcome label
 article_level <- article_level %>%
-  rename(Factor_effect = `Factor effects`) %>%
+  dplyr::rename(Factor_effect = `Factor effects`) %>%
   mutate(Outcome = ifelse(Outcome == "Conflict_outcome", "Conflict", Outcome))
 
 # count number of empirical findings about the effect of the CD factor on each outcome
 evidence <- evidence %>%
   group_by(Tool, CD, `Factor effects`) %>%
-  mutate(count_effect = n())
+  add_tally(name = "count_effect")
 
 # compute proportion of findings that align with the observed finding
 evidence <- evidence %>%
@@ -480,6 +521,8 @@ evidence <- evidence %>%
 evidence <- evidence %>%
   mutate(opposing_findings = ifelse(greater_findings >= 1 & lesser_findings >= 1,
                                     1, 0))
+
+
 ```
 
 ## Strength of evidence
@@ -502,13 +545,25 @@ evidence <- evidence %>%
          cro_focus_greater_factor = ifelse(Outcome != "Mass atrocities" & grepl("greater", `Factor effects`), 1, 0),
          cro_focus_lesser_factor = ifelse(Outcome != "Mass atrocities" & grepl("lesser", `Factor effects`), 1, 0),
          cro_focus_no_mixed_factor = ifelse(Outcome != "Mass atrocities" & grepl("mixed", `Factor effects`), 1, 0)) %>%
-  group_by(Tool, CD, `Factor effects`) %>%
-  mutate(ma_focus_greater_count_factor = ifelse(sum(ma_focus_greater_factor) > 0, sum(ma_focus_greater_factor), NA),
-         ma_focus_lesser_count_factor = ifelse(sum(ma_focus_lesser_factor) > 0, sum(ma_focus_lesser_factor), NA),
-         ma_focus_no_mixed_count_factor = ifelse(sum(ma_focus_no_mixed_factor) > 0, sum(ma_focus_no_mixed_factor), NA),
-         cro_focus_greater_count_factor = ifelse(sum(cro_focus_greater_factor) > 0, sum(cro_focus_greater_factor), NA),
-         cro_focus_lesser_count_factor = ifelse(sum(cro_focus_lesser_factor) > 0, sum(cro_focus_lesser_factor), NA),
-         cro_focus_no_mixed_count_factor = ifelse(sum(cro_focus_no_mixed_factor) > 0, sum(cro_focus_no_mixed_factor), NA))
+  mutate(outcome_type = ifelse(Outcome == "Mass atrocities", 1, 0)) %>%
+  group_by(Tool, CD, `Factor effects`, outcome_type) %>%
+  add_tally(ma_focus_greater_factor, name = "ma_focus_greater_count_factor") %>%
+  add_tally(ma_focus_lesser_factor, name = "ma_focus_lesser_count_factor") %>%
+  add_tally(ma_focus_no_mixed_factor, name = "ma_focus_no_mixed_count_factor") %>%
+  add_tally(cro_focus_greater_factor, name = "cro_focus_greater_count_factor") %>%
+  add_tally(cro_focus_lesser_factor, name = "cro_focus_lesser_count_factor") %>%
+  add_tally(cro_focus_no_mixed_factor, name = "cro_focus_no_mixed_count_factor") %>%
+  ungroup() %>%
+  dplyr::select(-outcome_type)
+
+### replace 0s with NAs
+evidence <- evidence %>%
+  mutate(ma_focus_greater_count_factor = ifelse(ma_focus_greater_count_factor == 0, NA, ma_focus_greater_count_factor), 
+         ma_focus_lesser_count_factor = ifelse(ma_focus_lesser_count_factor == 0, NA, ma_focus_lesser_count_factor), 
+         ma_focus_no_mixed_count_factor = ifelse(ma_focus_no_mixed_count_factor == 0, NA, ma_focus_no_mixed_count_factor),
+         cro_focus_greater_count_factor = ifelse(cro_focus_greater_count_factor == 0, NA, cro_focus_greater_count_factor), 
+         cro_focus_lesser_count_factor = ifelse(cro_focus_lesser_count_factor == 0, NA, cro_focus_lesser_count_factor), 
+         cro_focus_no_mixed_count_factor = ifelse(cro_focus_no_mixed_count_factor == 0, NA, cro_focus_no_mixed_count_factor))
 
 ### fill in _count_factor NA values
 evidence <- evidence %>%
@@ -517,7 +572,8 @@ evidence <- evidence %>%
        cro_focus_greater_count_factor, cro_focus_lesser_count_factor, cro_focus_no_mixed_count_factor) %>%
   fill(ma_focus_greater_count_factor, ma_focus_lesser_count_factor, ma_focus_no_mixed_count_factor, 
        cro_focus_greater_count_factor, cro_focus_lesser_count_factor, cro_focus_no_mixed_count_factor, 
-       .direction = "up")
+       .direction = "up") %>%
+  distinct()
 
 ### replace NAs with 0s
 evidence <- evidence %>%
@@ -527,13 +583,6 @@ evidence <- evidence %>%
          cro_focus_greater_count_factor = ifelse(is.na(cro_focus_greater_count_factor), 0, cro_focus_greater_count_factor), 
          cro_focus_lesser_count_factor = ifelse(is.na(cro_focus_lesser_count_factor), 0, cro_focus_lesser_count_factor), 
          cro_focus_no_mixed_count_factor = ifelse(is.na(cro_focus_no_mixed_count_factor), 0, cro_focus_no_mixed_count_factor))
-```
-
-As we discuss in the project methodology description, our vote-counting approach involved assigning "half weights" to findings about closely-related outcomes. Qualitatively, this approach meant that we treated a study about the effects of atrocity prevention tools on human rights violations, for example, as half as informative as a similar study about the effects of atrocity prevention tools on genocide. 
-
-Researchers may modify these weights by assigning different values to the _vote_factor_ variable below---for example, by assigning a value of 1 or -1 to findings about both mass atrocities and closely-related outcomes, or a value of 0.25 to findings about closely-related outcomes.
-
-```{r message = FALSE, warning = FALSE}
 
 ####################################
 
@@ -552,7 +601,7 @@ evidence <- evidence %>%
 ### preliminary sum of vote score, for calculating mixed effects
 evidence <- evidence %>%
   group_by(Tool, CD) %>%
-  mutate(temp_vote_count_factor = sum(vote_factor, na.rm = TRUE))
+  add_tally(vote_factor, name = "temp_vote_count_factor")
 
 ### create vote score for no or mixed effects
 evidence <- evidence %>%
@@ -565,37 +614,18 @@ evidence <- evidence %>%
 
 ### vote count
 evidence <- evidence %>%
-  mutate(vote_count_factor = sum(vote_factor)) %>%
+  add_tally(vote_factor, name = "vote_count_factor") %>%
   mutate(vote_count_factor = ifelse(vote_count_factor > 0 & temp_vote_count_factor < 0, 0,
                                     ifelse(vote_count_factor < 0 & temp_vote_count_factor > 0, 0,
                                            vote_count_factor)))
 
 ### rename factor effects label
 evidence <- evidence %>%
-  rename(Factor_effect = `Factor effects`)
+  dplyr::rename(Factor_effect = `Factor effects`)
+
 ```
 
 # Finalizing the data
-
-I list the outcomes associated with evidence about each factor. 
-
-```{r message = FALSE, warning = FALSE}
-
-#####################
-
-### list of outcomes
-
-#####################
-
-### change "Conflict_outcome" to "Conflict"
-evidence <- evidence %>%
-  mutate(Outcome = ifelse(Outcome == "Conflict_outcome", "Conflict", Outcome))
-
-### list out outcomes related to finding
-evidence <- evidence %>%
-  group_by(CD) %>%
-  mutate(outcomes = paste(sort(unique(Outcome)), collapse = ", "))
-```
 
 ## Core datasets
 
@@ -608,6 +638,15 @@ Our analysis results in two core datasets: (1) a factor-level dataset, which inc
 ### transform to article-level + full list of factors
 
 #####################
+
+### change "Conflict_outcome" to "Conflict"
+evidence <- evidence %>%
+  mutate(Outcome = ifelse(Outcome == "Conflict_outcome", "Conflict", Outcome))
+
+### list out outcomes related to finding
+evidence <- evidence %>%
+  dplyr::group_by(CD, Tool) %>%
+  dplyr::mutate(outcomes = paste(sort(unique(Outcome)), collapse = ", "))
 
 ### identify list of all factors with outcome focus (for article_level merge)
 evidence_article_level <- evidence %>%
@@ -626,7 +665,7 @@ factors_article_level <- left_join(evidence_article_level, article_level,
 
 ### add "Contextual or design" to "effects_type" variable
 factors_article_level <- factors_article_level %>%
-  mutate(effects_type = rep("Contextual or design", n())) %>%
+  mutate(effects_type = rep("Contextual or design")) %>%
   relocate(effects_type) %>%
   relocate(Gender, Publication, Empirical, Qual, Quant, Method, 
            .after = Year)
@@ -665,13 +704,14 @@ evidence <- evidence %>%
                 cro_focus_greater_count_factor, cro_focus_lesser_count_factor, cro_focus_no_mixed_count_factor,
                 outcomes) %>%
   distinct()
+
 ```
 
 ## References
 
 To ensure that researchers can access bibliographic information about each study, we downloaded the citation information for each study using the Zotero reference manager. Readers should note that the Zotero information likely contains typographic errors, both because we did not modify the references data at this stage and because the CSV encoding does not recognize all special characters. 
 
-I combined this reference information with the information in the study-level dataset. As we note above, the original file *zotero.csv* is too large to upload to Github. Researchers looking to cleanly replicate the below code can contact cpg@ushmm.org to receive the original Zotero file.
+I combined this reference information with the information in the study-level dataset. 
 
 ```{r message = FALSE, warning = FALSE}
 
@@ -712,19 +752,16 @@ references_index <- references_index %>%
 index_1 <- references_index %>%
   left_join(., references,
             by = c("article_index" = "index_1")) %>%
-  subset(!is.na(X.U.FEFF.key)) %>%
   dplyr::select(-c(index_2, index_3))
 
 index_2 <- references_index %>%
   left_join(., references,
             by = c("article_index" = "index_2")) %>%
-  subset(!is.na(X.U.FEFF.key)) %>%
   dplyr::select(-c(index_1, index_3))
 
 index_3 <- references_index %>%
   left_join(., references,
             by = c("article_index" = "index_3")) %>%
-  subset(!is.na(X.U.FEFF.key)) %>%
   dplyr::select(-c(index_1, index_2))
 
 references_index <- rbind(index_1, index_2, index_3)
@@ -882,7 +919,7 @@ references_index <- references_index %>%
 write.csv(references_index, "citations.csv", fileEncoding = "UTF-8")
 
 ### load list of citations
-references_index <- read.csv("citations_final.csv", encoding = )
+references_index <- read.csv("citations_final.csv", encoding = "UTF-8", check.names = F)
 
 ### combine citations with article_level dataset
 full_article_level <- full_article_level %>%
@@ -900,6 +937,7 @@ number_of_peer_reviewed_studies <- full_article_level %>%
 
 ### calculate number of unique peer-reviewed articles
 number_of_peer_reviewed_studies <- length(unique(number_of_peer_reviewed_studies$full_citation))
+
 ```
 
 ## Analytic guide
@@ -918,17 +956,17 @@ The project's "analytic guide" includes descriptive information about our defini
 factors <- evidence
 
 ### reset working directory
-work_dir_ag <- "D:/Google Drive/CPG/Projects/Research/Lessons-Learned/Kyra's Folder/Lessons learned/1. Collecting, Distilling, and Organizing the Knowledge/Empirical Knowledge/4. NEW coding process/Analytic guide"
+work_dir_ag <- "G:/My Drive/CPG/Projects/Research/Lessons-Learned/Kyra's Folder/Lessons learned/1. Collecting, Distilling, and Organizing the Knowledge/Empirical Knowledge/4. NEW coding process/Analytic guide"
 setwd(work_dir_ag)
 
 ### rerun analytic guide code
-source("D:/Google Drive/CPG/Projects/Research/Lessons-Learned/Kyra's Folder/Lessons learned/1. Collecting, Distilling, and Organizing the Knowledge/Empirical Knowledge/4. NEW coding process/Analytic guide/analytic_guide.R")
+source("G:/My Drive/CPG/Projects/Research/Lessons-Learned/Kyra's Folder/Lessons learned/1. Collecting, Distilling, and Organizing the Knowledge/Empirical Knowledge/4. NEW coding process/Analytic guide/analytic_guide.R")
 
 ### load analytic guide
 analytic_guide <- read.csv("analytic_guide.csv")
 
 ### reset working directory to main analysis folder
-work_dir <- "D:/Google Drive/CPG/Projects/Research/Lessons-Learned/Kyra's Folder/Lessons learned/1. Collecting, Distilling, and Organizing the Knowledge/Empirical Knowledge/4. NEW coding process/Analysis"
+work_dir <- "G:/My Drive/CPG/Projects/Research/Lessons-Learned/Kyra's Folder/Lessons learned/1. Collecting, Distilling, and Organizing the Knowledge/Empirical Knowledge/4. NEW coding process/Analysis"
 setwd(work_dir)
 
 ### subset analytic guide to tools
@@ -951,7 +989,7 @@ guide_factors <- analytic_guide %>%
 factors <- factors %>%
   left_join(., guide_tools,
             by = c("Tool" = "Dedoose.name")) %>%
-  dplyr::select(-Name)
+  dplyr::rename(tool_name = Name)
 
 ### left_join by dedoose codes (factors)
 factors <- factors %>%
@@ -963,9 +1001,10 @@ factors <- factors %>%
 factors <- factors %>%
   mutate(Name = trimws(Name),
          CD = trimws(CD))
+
 ```
 
-## Add practitioner data
+## Add practitioner interview data
 
 As we discuss in the project methodology description, a second component of the project involves interviewing experienced practitioners with experience working on select tools---in particular, targeted financial sanctions. I summarized the information from the interviews using the *practitioner_master.R* code and combined the summary information with the information from the factor-level dataset.
 
@@ -978,12 +1017,13 @@ As we discuss in the project methodology description, a second component of the 
 ################################################
 
 ### set wd for practitioner data
-work_dir_practitioner <- "D:/Google Drive/CPG/Projects/Research/Lessons-Learned/Kyra's Folder/Lessons learned/1. Collecting, Distilling, and Organizing the Knowledge/Practitioner Knowledge/Survey/Analysis"
+work_dir_practitioner <- "G:/My Drive/CPG/Projects/Research/Lessons-Learned/Kyra's Folder/Lessons learned/1. Collecting, Distilling, and Organizing the Knowledge/Practitioner Knowledge/Survey/Analysis"
 setwd(work_dir_practitioner)
 
 ### load practitioner data, associate with targeted sanctions
 practitioner <- read.csv("factors_factor_level.csv") %>%
-  mutate(Tool = rep("Targeted sanctions_tool", n())) %>%
+  mutate(Tool = rep("Targeted sanctions_tool"),
+         tool_name = rep("Targeted sanctions")) %>%
   dplyr::select(-c(X, num_id, Type))
 
 ### full_join practitioner data to master factors dataset
@@ -996,27 +1036,23 @@ factors <- factors %>%
                    "Inverse.factor.description" = "Inverse.factor.description",
                    "Contextual.or.design.factor" = "Contextual.or.design.factor",
                    "Family" = "Family",
-                   "Tool" = "Tool"))
+                   "Tool" = "Tool",
+                   "tool_name" = "tool_name"))
 
 ### reset working directory
 setwd(work_dir)
+
 ```
 
 # Web display
 
-The project's central output is the Tools for Atrocity Prevention website, which summarizes the conclusions of our systematic review. Researchers may access the website at https://preventiontools.ushmm.org/, and supporting materials for the rest of the project at https://www.ushmm.org/lessons-learned.
+The project's central output is the Tools for Atrocity Prevention website, which summarizes the conclusions of our systematic review. Researchers may access the website at https://preventiontools.ushmm.org/, and supporting materials for the rest of the project at https://www.ushmm.org/lessons-learned. In the following sections, we transform the "raw" data in preparation for the web display.
 
 ## Inverted factors
 
-For the Tools for Atrocity Prevention website, we "inverted" factors that (1) were associated with lesser effectiveness of the prevention tool and (2) had an obvious opposite value. 
+For the Tools for Atrocity Prevention website, we "inverted"---reversed the directional effect of---factors that (1) were associated with lesser effectiveness of the prevention tool and (2) had an obvious opposite value. 
 
 ```{r message = FALSE, warning = FALSE}
-
-##############################################
-
-### [half weighted] Invert (absolute value of) strength of evidence for factors with negative SoE / vote count values
-
-##############################################
 
 ### identify factors with negative strength of evidence + inverted factors
 factors <- factors %>%
@@ -1031,13 +1067,106 @@ inverted_factors <- factors %>%
                 inversion_with_neg_strength)
 
 ### write csv of inverted factors
-write.csv(inverted_factors, "inverted_factors 13 June 2022 12pm.csv", fileEncoding = "UTF-8")
+write.csv(inverted_factors, "inverted_factors 13 July 2022 8am.csv", fileEncoding = "UTF-8")
 
 ### invert factors
 factors <- factors %>%
   mutate(Name.Final = ifelse(inversion_with_neg_strength == 1, Inverse.factor, Name),
          Description.Final = ifelse(inversion_with_neg_strength == 1, Inverse.factor.description, Description),
          vote_count = ifelse(inversion_with_neg_strength == 1, abs(vote_count_factor), vote_count_factor))
+
+### invert display name for atrocity_justifying_ideology
+factors <- factors %>%
+  mutate(Name.Final = ifelse(Name == "Ideologically motivated target", Inverse.factor, Name.Final),
+         Description.Final = ifelse(Name == "Ideologically motivated target", Inverse.factor.description, Description.Final))
+
+### invert display name for military_activity
+factors <- factors %>%
+  mutate(Name.Final = ifelse(Name == "Military sanctions", Inverse.factor, Name.Final),
+         Description.Final = ifelse(Name == "Military sanctions", Inverse.factor.description, Description.Final))
+
+```
+
+## Outcomes
+
+For the summary information on the website, we calculated the number of findings about mass atrocities versus closely-related outcomes.
+
+```{r message = FALSE, warning = FALSE}
+
+### select gen_effects article identifiers for each tool
+gen_effects_outcomes <- full_article_level %>%
+  dplyr::select(Index.Number, Year, Tool, 
+                ma_focus_decrease_average, ma_focus_increase_average, ma_focus_no_mixed_average,
+                cro_focus_decrease_average, cro_focus_increase_average, cro_focus_no_mixed_average,
+                count_adverse, count_without_adverse,
+                effects_type) %>% 
+  dplyr::rename("ma_focus_greater" = "ma_focus_decrease_average",
+         "ma_focus_lesser" = "ma_focus_increase_average",
+         "ma_focus_no_mixed" = "ma_focus_no_mixed_average",
+         "cro_focus_greater" = "cro_focus_decrease_average",
+         "cro_focus_lesser" = "cro_focus_increase_average",
+         "cro_focus_no_mixed" = "cro_focus_no_mixed_average") %>%
+  subset(effects_type == "Average")
+
+### select factors article identifiers for each tool
+factors_outcomes <- full_article_level %>%
+  subset(effects_type == "Contextual or design") %>%
+  dplyr::select(Index.Number, Year, Tool, Outcome, Factor_effect, effects_type) %>%
+  mutate(ma_focus_greater = ifelse(Outcome == "Mass atrocities" & grepl("greater", Factor_effect), 1, 0),
+         ma_focus_lesser = ifelse(Outcome == "Mass atrocities" & grepl("lesser", Factor_effect), 1, 0),
+         ma_focus_no_mixed = ifelse(Outcome == "Mass atrocities" & grepl("mixed", Factor_effect), 1, 0),
+         cro_focus_greater = ifelse(Outcome != "Mass atrocities" & grepl("greater", Factor_effect), 1, 0),
+         cro_focus_lesser = ifelse(Outcome != "Mass atrocities" & grepl("lesser", Factor_effect), 1, 0),
+         cro_focus_no_mixed = ifelse(Outcome != "Mass atrocities" & grepl("mixed", Factor_effect), 1, 0)) %>%
+  dplyr::select(-c(Factor_effect, Outcome)) %>%
+  relocate(effects_type, .after = last_col()) %>%
+  mutate(count_adverse = NA,
+         count_without_adverse = NA)
+
+### combine factors and general effects
+outcomes <- rbind(gen_effects_outcomes, factors_outcomes)
+
+### create ma_focus and cro_focus variables
+outcomes <- outcomes %>%
+  mutate(ma_focus = ifelse(ma_focus_greater == 1 | ma_focus_lesser == 1 | ma_focus_no_mixed == 1, 1, 0),
+         cro_focus = ifelse(cro_focus_greater == 1 | cro_focus_lesser == 1 | cro_focus_no_mixed == 1, 1, 0))
+
+### remove type and direction, deduplicate
+outcomes <- outcomes %>%
+  dplyr::select(Index.Number, Tool, ma_focus, cro_focus) %>%
+  distinct()
+
+### count number of factor articles for each tool
+outcomes <- outcomes %>%
+  group_by(Tool) %>%
+  add_tally(ma_focus, name = "ma_focus_tool") %>%
+  add_tally(cro_focus, name = "cro_focus_tool")
+
+### select variables to remove count data
+outcomes <- outcomes %>%
+  dplyr::select(Tool, ma_focus_tool, cro_focus_tool) %>%
+  distinct()
+
+### save CSV with outcomes information
+write.csv(outcomes, "outcomes 13 July 2022 8am.csv", fileEncoding = "UTF-8")
+
+```
+
+## "Adverse consequences" addendum
+
+For a select number of tools---in particular, comprehensive economic sanctions---"adverse consequences" comprise a large number of findings about the tool's effect on closely-related outcomes. We assume that these findings are relevant to the consideration of when and how to use these tools most effectively. Because these consequences may be distinct from direct outcomes, however, we also draw attention to separate adverse consequences findings from the literature.
+
+``` {r message = FALSE, warning = FALSE}
+
+### select adverse consequences variables
+adverse_consequences <- full_article_level %>%
+  subset(effects_type == "Average") %>%
+  dplyr::select(Tool, overall, count, count_adverse, count_without_adverse) %>%
+  distinct()
+
+### save CSV with adverse consequences findings
+write.csv(adverse_consequences, "adverse_consequences 13 July 2022 8am.csv", fileEncoding = "UTF-8")
+
 ```
 
 ## Qualitative description
@@ -1045,12 +1174,6 @@ factors <- factors %>%
 For the website, we converted the quantitative vote count about each factor to a qualitative range of "Stronger," "Moderate," and "Weaker" evidence.
 
 ```{r message = FALSE, warning = FALSE}
-
-######################################
-
-### Qualitative description of findings
-
-######################################
 
 ### research evidence
 factors <- factors %>%
@@ -1069,9 +1192,9 @@ factors <- factors %>%
 
 ### practitioner evidence
 factors <- factors %>%
-  mutate(practitioner_qualitative = ifelse(proportion_practitioner > 0.66, "Stronger",
-                                           ifelse(proportion_practitioner <= 0.66 & proportion_practitioner > 0.33, "Moderate",
-                                                  ifelse(proportion_practitioner <= 0.33, "Weaker",
+  mutate(practitioner_qualitative = ifelse(proportion_practitioner > 2/3, "Stronger",
+                                           ifelse(proportion_practitioner <= 2/3 & proportion_practitioner > 1/3, "Moderate",
+                                                  ifelse(proportion_practitioner <= 1/3, "Weaker",
                                                          NA))))
 
 ### add "weaker" to targeted sanctions factors with 0 practitioner findings (and some research findings)
@@ -1079,20 +1202,6 @@ factors <- factors %>%
   mutate(practitioner_qualitative = ifelse(Tool == "Targeted sanctions_tool" & is.na(count_practitioner),
                                            "Weaker", practitioner_qualitative))
 
-### add research qualitative language description for web tool
-factors <- factors %>%
-  mutate(research_qualitative_for_web = ifelse(research_qualitative == "Stronger", "Relatively strong",
-                                            ifelse(research_qualitative == "Moderate", "Moderate", 
-                                                   ifelse(research_qualitative == "Weaker", "Relatively weak",
-                                                          ifelse(research_qualitative == "None available", "No available",
-                                                                 NA)))))
-
-### add practitioner qualitative language description for web tool
-factors <- factors %>%
-  mutate(practitioner_qualitative_for_web = ifelse(practitioner_qualitative == "Stronger", "Relatively strong",
-                                               ifelse(practitioner_qualitative == "Moderate", "Moderate", 
-                                                      ifelse(practitioner_qualitative == "Weaker", "Relatively weak", 
-                                                             NA))))
 ```
 
 ## Tools without a research review
@@ -1106,22 +1215,6 @@ On the website, we also include a list of atrocity prevention tools for which we
 ### Change tool names, add tools without a research review
 
 #################################
-
-### create a separate reference to the tools without the "_tool" suffix
-factors <- factors %>%
-  mutate(Tool_2 = Tool) %>%
-  separate(Tool, c("tool_name", "suffix"), sep = "_tool") %>%
-  dplyr::select(-suffix) %>%
-  rename(Tool = Tool_2)
-
-### trim whitespace on guide_tools
-guide_tools <- guide_tools %>%
-  mutate(Name)
-
-### rename "Naming and shaming" without the underscores
-factors <- factors %>%
-  mutate(tool_name = ifelse(tool_name == "Naming_and_shaming",
-                            "Naming and shaming", tool_name))
 
 ### add tools from analytic guide, keep ones without an evidence review
 factors <- factors %>%
@@ -1141,8 +1234,9 @@ factors <- factors %>%
                    "military" = "military",
                    "economic" = "economic",
                    "legal" = "legal")) %>%
-  rename("Dedoose.name_factor" = "Dedoose.name.x",
-         "Dedoose.name_tool" = "Dedoose.name.y")
+  dplyr::rename("Dedoose.name_factor" = "Dedoose.name.x",
+                "Dedoose.name_tool" = "Dedoose.name.y")
+
 ```
          
 # Downloading data
@@ -1153,15 +1247,10 @@ The final step is downloading the datasets with our analytic results. First, I e
 
 ```{r message = FALSE, warning = FALSE}
 
-#################################
-
-### write CSVs
-
-#################################
-
 ### add Name.Final for practitioner interview items
 factors <- factors %>%
-  mutate(Name.Final = ifelse(is.na(Dedoose.name_factor), Name, Name.Final))
+  mutate(Name.Final = ifelse(is.na(Dedoose.name_factor) & is.na(Name.Final), Name, Name.Final),
+         Description.Final = ifelse(is.na(Dedoose.name_factor) & is.na(Description.Final), Description, Description.Final))
 
 ### [half weighted] relocate factor name to the beginning of the dataset, remove CD variable
 factors <- factors %>%
@@ -1169,15 +1258,12 @@ factors <- factors %>%
   ungroup() %>%
   dplyr::select(-CD)
 
-### remove other extraneous variables
-factors <- factors %>%
-  dplyr::select(-c(practitioner_qualitative_for_web, research_qualitative_for_web))
-
 ### factor_level spreadsheet
-write.csv(factors, "all_factors.csv", fileEncoding = "UTF-8")
+write.csv(factors, "all_factors 13 July 2022 8am.csv")
 
 ### article_level
-write.csv(article_level, "all_sources.csv", fileEncoding = "UTF-8")
+write.csv(article_level, "all_sources 13 July 2022 8am.csv", fileEncoding = "UTF-8")
+
 ```
 
 ## Disaggregated by prevention tool
@@ -1189,10 +1275,6 @@ write.csv(article_level, "all_sources.csv", fileEncoding = "UTF-8")
 ### download files without version control labels and tool-specific CSVs
 
 #############################################
-
-### set working directory for CSV files
-csv_wd <- "D:/Google Drive/CPG/Projects/Research/Lessons-Learned/Kyra's Folder/Lessons learned/1. Collecting, Distilling, and Organizing the Knowledge/Empirical Knowledge/4. NEW coding process/Analysis/Website - CSV files"
-setwd(csv_wd)
 
 ############################
 
@@ -1250,12 +1332,12 @@ article_level %>%
 
 ### factor-level spreadsheet
 factors %>%
-  subset(Tool == "Support to non state armed groups_tool") %>%
+  subset(Tool == "Support to non-state armed groups_tool") %>%
   write.csv("support_to_nsags_factors_final.csv")
 
 ### article-level spreadsheet
 article_level %>%
-  subset(Tool == "Support to non state armed groups_tool") %>%
+  subset(Tool == "Support to non-state armed groups_tool") %>%
   write.csv("support_to_nsags_all_sources_final.csv")
 
 ############################
@@ -1396,7 +1478,7 @@ article_level %>%
 factors <- factors %>%
   dplyr::select(-Tool)
 
-write.csv(factors, "all_factors.csv", fileEncoding = "UTF-8")
+write.csv(factors, "all_factors.csv")
 
 ### article_level
 write.csv(article_level, "all_sources.csv", fileEncoding = "UTF-8")
@@ -1404,12 +1486,4 @@ write.csv(article_level, "all_sources.csv", fileEncoding = "UTF-8")
 ### CSV with outcomes information
 write.csv(outcomes, "outcomes.csv", fileEncoding = "UTF-8")
 
-############################################################
-
-### reset working directory to main analysis folder
-
-############################################################
-
-work_dir <- "D:/Google Drive/CPG/Projects/Research/Lessons-Learned/Kyra's Folder/Lessons learned/1. Collecting, Distilling, and Organizing the Knowledge/Empirical Knowledge/4. NEW coding process/Analysis"
-setwd(work_dir)
 ```
