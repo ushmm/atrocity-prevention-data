@@ -28,7 +28,7 @@ groundhog.library("car", "2022-07-13")
 
 I stored the relevant project files in a series of local Google Drive folders. I also stored the auxiliary R files in separate local Drive folders. Accordingly, those files may take some editing to correspond to your local file directory setup.
 
-You may download all supporting CSV files from the "Data" folder on this GitHub page. You may download the auxiliary coding files---in particular, the files related to the Zotero references, the analytic guide, and the practitioner interviews---from the "Auxiliary" folder on this GitHub page.
+You may download all supporting CSV files from the "Data" folder on this GitHub page. You may download the auxiliary coding files---in particular, the files related to the analytic guide and practitioner interviews---from the "Auxiliary" folder on this GitHub page.
 
 ## Guide to files in Data folder
 
