@@ -1,5 +1,5 @@
 "Data Dictionary for ""Tools for Atrocity Prevention"" Project",,,,,,,,,,,,,,
-"Last updated May 2022. Variables listed by data sheet, by category, and in alphabetical order",,,,,,,,,,,,,,
+"Last updated July 2022. Variables listed by data sheet, by category, and in alphabetical order",,,,,,,,,,,,,,
 Variable name,Data sheet,Variable type,This variable describes:,,,,,,,,,,,
 Contextual.or.design.factor,all_factors,Text / binary,"Whether the factor pertains to (1) the context in which the atrocity prevention tool is being used (""Contextual""), or (2) the manner in which the atrocity prevention tool is being implemented (""Design"")",,,,,,,,,,,
 count,all_factors,Integer,"The number of findings that address the effects of the presence of the factor on the atrocity prevention tool's effectiveness. In some circumstances, this value may differ from the number of studies about the factor",,,,,,,,,,,
