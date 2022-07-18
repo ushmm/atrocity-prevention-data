@@ -1083,6 +1083,8 @@ factors <- factors %>%
 
 ```
 
+Note: Where the research evidence and practitioner knowledge indicate disagreement about the direction of the effect of a specific factor, we do not display either the research finding or the summary of practitioner perspectives on the Tools for Atrocity Prevention website. However, we keep all data about the research evidence and practitioner knowledge in the raw CSV files. This disagreement only applies to one factor-level finding—namely, the timing of the implementation of targeted sanctions (listed as “Early / late implementation” in the CSV files). We plan to account for this discrepancy in future project updates.
+
 ## Outcomes
 
 For the summary information on the website, we calculated the number of findings about mass atrocities versus closely-related outcomes.
