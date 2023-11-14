@@ -1,6 +1,6 @@
 # Master analysis file for Tools for Atrocity Prevention project
 
-The following document annotates the R code for "Lessons Learned in Preventing and Responding to Mass Atrocities," a project of the Holocaust Museum's Simon-Skjodt Center for the Prevention of Genocide. 
+The following document annotates the R code for "Lessons Learned in Preventing and Responding to Mass Atrocities," a project of the US Holocaust Memorial Museum's Simon-Skjodt Center for the Prevention of Genocide. 
 
 Daniel Solomon is the original author of this code. Please direct inquiries about this analysis to cpg@ushmm.org.
 
@@ -913,6 +913,12 @@ references_index <- references_index %>%
 
 ### download list of citations
 write.csv(references_index, "citations.csv", fileEncoding = "UTF-8")
+
+```
+
+After downloading the list of citations, you should copy the *citations.csv* file and relabel it as *citations_final.csv*. This ensures that you are using the latest version of the citations final.
+
+```{r message = FALSE, warning = FALSE}
 
 ### load list of citations
 references_index <- read.csv("citations_final.csv", encoding = "UTF-8", check.names = F)
