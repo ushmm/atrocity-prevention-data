@@ -1,6 +1,8 @@
 # Master analysis file for Tools for Atrocity Prevention project
 
-The following document annotates the R code for the [Tools for Atrocity Prevention](https://preventiontools.ushmm.org/) (TfAP) website, a project of the US Holocaust Memorial Museum's Simon-Skjodt Center for the Prevention of Genocide. The code applies to the current version of the TfAP website, last updated in April 2024. The code for the July 2022 update can be found in [this GitHub folder](https://github.com/ushmm/atrocity-prevention-data/tree/main/auxiliary/2022%20update%20files).
+The following document annotates the R code for the analysis underlying the [Tools for Atrocity Prevention](https://preventiontools.ushmm.org/) (TfAP) website, a project of the United States Holocaust Memorial Museum's Simon-Skjodt Center for the Prevention of Genocide. The code applies to the current version of the TfAP website, last updated in April 2025. Prior versions of the code can be found in the following folders: (1) [July 2022](https://github.com/ushmm/atrocity-prevention-data/tree/main/auxiliary/2022%20update%20files); (2) [April 2024](https://github.com/ushmm/atrocity-prevention-data/tree/main/auxiliary/2024%20update%20files). 
+
+The principal differences between this code and the April 2024 version are twofold: (1) this version includes an analysis of interviews with 13 practitioners of peace operations, to complement the analysis of interviews with 15 practitioners of targeted sanctions; and (2) this version includes code that addresses circumstances in which practitioner perspectives about the anticipated effect of specific success factors differs from the prevailing research evidence.
 
 Daniel Solomon is the original author of this code. Please direct inquiries about this analysis to cpg@ushmm.org.
 
@@ -12,18 +14,16 @@ To run the full code from this document, remove the "eval = FALSE" command in th
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 ```
 
-The analysis requires the following packages. Because these packages are regularly updated, I use the *groundhog* package to associate the code with the package versions that were current as of 13 July 2022---the last date on which I updated the original TfAP code.
+The analysis requires the following packages. Prior versions of this code used the *groundhog* package to associate the code with the package versions that were current as of 13 July 2022, but the *groundhog* approach created cascading errors in subsequent analyses. Accordingly, I've updated the code to the default "library(XXXpackage)" approach. As of July 2025, all packages used in this analysis were regularly updated.
 
 ```{r message = FALSE, warning = FALSE}
 
-library(groundhog)
-
-groundhog.library("dplyr", "2022-07-13") ### data wrangling
-groundhog.library("stringr", "2022-07-13") ### edit strings
-groundhog.library("tidyr", "2022-07-13") ### data wrangling
-groundhog.library("fuzzyjoin", "2022-07-13") ### fuzzy text joins
-groundhog.library("reshape", "2022-07-13") ### reshape datasets
-groundhog.library("ggplot2", "2022-07-13") ### plots
+library(dplyr) ### data wrangling
+library(stringr) ### edit strings
+library(tidyr) ### data wrangling
+library(fuzzyjoin) ### fuzzy text joins
+library(reshape) ### reshape datasets
+library(ggplot) ### plots
 
 ```
 
@@ -37,9 +37,9 @@ You may download all supporting CSV files from the "Data" folder on this GitHub 
 
 - *all_sources.csv*: The "study-factor" level dataset that results from the code below.
 
-- *code_guide_2023.csv*: The ordered list of researchers responsible for coding each article, which we use to filter the excerpt-level data from Dedoose.
+- *code_guide_2023.csv*: The list of researchers responsible for coding each article, which we use to filter the excerpt-level data from Dedoose.
 
-- *data_dictionary.csv*: A guide to the variables in the *all_factors.csv* and *all_sources.csv* datasets.
+- *data_dictionary_2023.csv*: A guide to the variables in the *all_factors.csv* and *all_sources.csv* datasets.
 
 - *excerpts_2023.csv*: The excerpt-level data from Dedoose, the qualitative coding software that we use for this project. This is the cumulative data from Dedoose, combining excerpts from the most recent studies and studies that we included in previous project updates.
 
@@ -47,7 +47,7 @@ You may download all supporting CSV files from the "Data" folder on this GitHub 
 
 ## Guide to files in Auxiliary folder
 
-- *[for editing] LL analytic guide to coding.docx*: The Word-formatted version of the analytic guide for coding studies. This document contains descriptive information about factors that are associated with the effectiveness of atrocity prevention tools. 
+- *analytic_guide_2023.docx*: The Word-formatted version of the analytic guide for coding studies. This document contains descriptive information about factors that are associated with the effectiveness of atrocity prevention tools. 
 
 - *[for editing] Practitioner factor guide.docx*: The Word-formatted version of the analytic guide associated with the practitioner interviews.
 
@@ -55,13 +55,22 @@ You may download all supporting CSV files from the "Data" folder on this GitHub 
 
 - *anaytic_guide.R*: The R code for transforming the Word-formatted version of the analytic guide into a spreadsheet-formatted document.
 
-- *factors_factor_level.csv*: The summary information from our practitioner interviews.
+- Original interview data, based on the practitioner interview transcripts:
 
-- *practitioner_master.R*: The R code for summarizing the practitioner interview data about targeted sanctions.
+  - *[ts] practitioner_survey.csv*: The anonymized data from our interviews with experienced practitioners about targeted sanctions. Note that we have replaced cells that contain identifying information about the interviewees with a "XXX" string. In some cases, these include transcript columns. In the R code *practitioner_master*, this file is called "practitioner_survey.csv." I've changed the name here for clarity.
+  - *[po] practitioner_survey.csv*: The anonymized data from our interviews with experienced practitioners about targeted sanctions. In the R code *peace_ops_summary*, this file is called "[with negative coding] Coding LL CF_DF by Interview - Sheet1.csv." I've changed the name here for clarity and brevity.
 
-- *practitioner_survey.csv*: The anonymized data from our interviews with experienced practitioners. Note that we have replaced cells that contain identifying information about the interviewees with a "XXX" string. In some cases, these include transcript columns.
+- Factor-level data, based on the practitioner interviews:
 
-- *zotero.csv*: References information for the files in the *all_sources.csv* document. The file is too large to post on GitHub; please contact us at cpg@ushmm.org if you require access to it.
+  - Targeted sanctinos: *[ts] factors_factor_level.csv*: The summary information from our practitioner interviews about targeted sanctions. Originally, these data were stored in a separate working directory from the peace operations data. In the R codes *practitioner_master* and *master_analysis_2023*, this file is called "factors_factor_level.csv." I've changed the name here for clarity.
+  - Peace operations: *[po] factors_factor_level.csv*: The summary information from our practitioner interviews about targeted sanctions. Originally, these data were stored in a separate working directory from the targeted sanctions data. In the R codes *peace_ops_summary* and *master_analysis_2023*, this file is called "factors_factor_level.csv." I've changed the name here for clarity.
+
+- R codes for the practitioner interviews:
+
+  - Targeted sanctions: *practitioner_master.R* - The R code for summarizing the practitioner interview data about targeted sanctions.
+  - Peace operations: *peace_ops_summary.R* - The R code for summarizing the practitioner interview data about peace operations.
+
+- *zotero.csv*: References information for the files in the *all_sources.csv* document. Previous versions of this file were too large to post on GitHub; we've since consolidated the Zotero database.
 
 # Load and subset data
 
@@ -73,7 +82,7 @@ Below, I detail how I transformed, filtered, and cleaned the Dedoose data for fu
 
 ### load excerpt-level data - download only current year from Dedoose, need to remove erroneous empty last column
 excerpts <- read.csv("excerpts_2023.csv", na.strings = "", check.names = F) %>%
-  dplyr::select(-317)
+  dplyr::select(-330)
 
 ### change variable names with spaces to periods
 names(excerpts) <- gsub(x = names(excerpts),
@@ -90,7 +99,7 @@ excerpts <- excerpts %>%
 
 ```
 
-Because multiple project researchers coded each article, we used an ordered list of coders to filter excerpt codes for further analysis. The ordered list for each article is located in the document *code_guide.csv*. We also used the document *master_codes.csv* to ensure that we had downloaded excerpts from the correct list of codes. To filter out excluded codes, we appended these documents to the original excerpts dataset.
+Because multiple project researchers coded each article, we used an ordered list of coders to filter excerpt codes for further analysis. The ordered list for each article is located in the document *code_guide_2023.csv*. We also used the document *master_codes_2023.csv* to ensure that we had downloaded excerpts from the correct list of codes. To filter out excluded codes, we appended these documents to the original excerpts dataset.
 
 ```{r message = FALSE, warning = FALSE}
 
@@ -350,7 +359,6 @@ Although we do not present the results of the overall effects separately, we inc
 ### record gen_effects
 
 #######################
-
 
 ### revise "Conflict_outcome" in outcome to read "Conflict"
 gen_effects <- gen_effects %>%
@@ -650,7 +658,7 @@ full_article_level <- gen_effects %>%
                    "count_adverse" = "count_adverse",
                    "count_without_adverse" = "count_without_adverse"))
 
-### remove "Gender" variable
+### remove "Gender" variable - we collected information about author gender but it is not central to our analysis
 full_article_level <- full_article_level %>%
   dplyr::select(-Gender)
 
@@ -899,10 +907,6 @@ references_index <- references_index %>%
 ### download list of citations
 write.csv(references_index, "citations_2023.csv", fileEncoding = "UTF-8")
 
-```
-
-```{r message = FALSE, warning = FALSE}
-
 ### combine citations with article_level dataset, replace (Dedoose) Year with Publication.Year and rename as Year
 full_article_level <- full_article_level %>%
   left_join(., references_index[, c("article_index", "full_citation", "Publication.Year")],
@@ -1002,7 +1006,9 @@ factors <- factors %>%
 
 ## Add practitioner interview data
 
-A second component of the project involves interviewing experienced practitioners with experience working on select tools---as of the 2024 release, this group of practitioners only includes those who work on targeted financial sanctions. I summarized the information from the interviews using the *practitioner_master.R* code and combined the summary information with the information from the factor-level dataset.
+A second component of the project involves interviewing experienced practitioners with experience working on select tools---as of the 2025 release, this group of practitioners includes those who work on (1) targeted financial sanctions and (2) peace operations. I summarized the information from the interviews using the *practitioner_master* and *peace_ops_summary* codes, respectively, and combined the summary information with the information from the factor-level dataset.
+
+### Targeted sanctions
 
 ```{r message = FALSE, warning = FALSE}
 
@@ -1056,6 +1062,67 @@ setwd(work_dir_2023)
 
 ```
 
+### Peace operations
+
+``` {r message = FALSE, warning = FALSE}
+
+### set wd for practitioner data 
+### [need to re-run manually if there are any updates to practitioner data or code categories]
+work_dir_practitioner_peace_ops <- "G:/.shortcut-targets-by-id/1gvhqlwU_FnML3ntwXRBg_r48BjM6CRsK/Lessons learned/Practitioner knowledge/Survey/Peace Operations/Analysis"
+setwd(work_dir_practitioner_peace_ops)
+
+### load practitioner data, associate with peace operations
+practitioner_peace_ops <- read.csv("factors_factor_level.csv") %>%
+  mutate(Tool = rep("Peace operations_tool"),
+         tool_name = rep("Peace operations")) %>%
+  dplyr::select(-X)
+
+### full_join practitioner data to master factors dataset
+factors_peace_ops <- factors %>%
+  subset(Tool == "Peace operations_tool") %>%
+  full_join(., practitioner_peace_ops,
+            by = c("Name" = "short_new_description",
+                   "CD" = "Dedoose.name",
+                   "Description" = "Description",
+                   "Inverse.factor" = "Inverse.factor",
+                   "Inverse.factor.description" = "Inverse.factor.description",
+                   "Contextual.or.design.factor" = "Contextual.or.design.factor",
+                   "Family" = "Family",
+                   "Tool" = "Tool",
+                   "tool_name" = "tool_name",
+                   "count_practitioner" = "count_practitioner",
+                   "number_practitioners" = "number_practitioners",
+                   "proportion_practitioner" = "proportion_practitioner",
+                   "greater_practitioner" = "greater_practitioner",
+                   "lesser_practitioner" = "lesser_practitioner",
+                   "no_mixed_practitioner" = "no_mixed_practitioner"))
+
+### fill in, deduplicate
+factors_peace_ops <- factors_peace_ops %>%
+  group_by(Name) %>%
+  fill(-c(Name)) %>%
+  fill(-c(Name), .direction = "up") %>%
+  distinct() %>%
+  ungroup() %>%
+  group_by(tool_name) %>%
+  fill(Short.description, Description_tool, Theory.of.change,
+       Structural.or.operational, Evidence.review, Strategies.the.tool.can.support, DIMEL) %>%
+  fill(Short.description, Description_tool, Theory.of.change,
+       Structural.or.operational, Evidence.review, Strategies.the.tool.can.support, DIMEL, .direction = "up") %>%
+  distinct()
+  
+### remove peace ops from master factors
+factors_master <- factors %>%
+  subset(Tool != "Peace operations_tool")
+
+### combine factors_master and factors_peace_ops
+factors <- rbind(factors_master, factors_peace_ops)
+
+### reset working directory
+setwd(work_dir_2023)
+
+``` 
+
 # Web display
 
 The project's central output is the Tools for Atrocity Prevention website, which summarizes the conclusions of our systematic review. Researchers may access the website at https://preventiontools.ushmm.org/, and supporting materials for the rest of the project at https://www.ushmm.org/lessons-learned. In the following sections, we transform the "raw" data in preparation for the web display.
@@ -1068,7 +1135,7 @@ For the Tools for Atrocity Prevention website, we "inverted"---reversed the dire
 
 ##############################################
 
-### [half weighted] Invert (absolute value of) strength of evidence for factors with negative SoE / vote count values
+### Invert (absolute value of) strength of evidence for factors with negative SoE / vote count values
 
 ##############################################
 
@@ -1085,27 +1152,55 @@ inverted_factors <- factors %>%
                 inversion_with_neg_strength)
 
 ### write csv of inverted factors
-write.csv(inverted_factors, "inverted_factors 19 September 2024.csv", fileEncoding = "UTF-8")
+write.csv(inverted_factors, "inverted_factors 2 June 2025.csv", fileEncoding = "UTF-8")
 
 ### invert factors
 factors <- factors %>%
-  mutate(Name.Final_research = ifelse(inversion_with_neg_strength == 1, Inverse.factor, Name),
-         Description.Final_research = ifelse(inversion_with_neg_strength == 1, Inverse.factor.description, Description),
-         vote_count = ifelse(inversion_with_neg_strength == 1, abs(vote_count_factor), vote_count_factor))
+  mutate(Name.Final_research = ifelse(is.na(count), NA,
+                                      ifelse(inversion_with_neg_strength == 1, Inverse.factor, Name)),
+         Description.Final_research = ifelse(is.na(count), NA,
+                                             ifelse(inversion_with_neg_strength == 1, Inverse.factor.description, Description)),
+         vote_count_factor = ifelse(is.na(count), NA,
+                                    ifelse(inversion_with_neg_strength == 1, abs(vote_count_factor), vote_count_factor)))
 
-### invert display name for military_sanctions (targeted sanctions) - include greater_practitioner / lesser_practitioner switch
+### invert factors for practitioner name
 factors <- factors %>%
-  mutate(Name.Final_research = ifelse(Name == "Military sanctions", Inverse.factor, Name.Final_research),
-         Description.Final_research = ifelse(Name == "Military sanctions", Inverse.factor.description, Description.Final_research),
-         greater_practitioner_temp = greater_practitioner,
+  mutate(Name.Final_practitioner = ifelse(is.na(count_practitioner), NA,
+                                          ifelse(count_practitioner < 0, Inverse.factor, Name)),
+         Description.Final_practitioner = ifelse(is.na(count_practitioner), NA,
+                                             ifelse(count_practitioner < 0, Inverse.factor.description, Description)))
+
+### invert greater/lesser for research findings (including disaggregated by outcomes)
+factors <- factors %>%
+  mutate(greater_findings_temp = greater_findings,
+         lesser_findings_temp = lesser_findings,
+         ma_focus_greater_count_factor_temp = ma_focus_greater_count_factor,
+         ma_focus_lesser_count_factor_temp = ma_focus_lesser_count_factor,
+         cro_focus_greater_count_factor_temp = cro_focus_greater_count_factor,
+         cro_focus_lesser_count_factor_temp = cro_focus_lesser_count_factor,
+         greater_findings = ifelse(temp_vote_count_factor < 0, lesser_findings_temp, greater_findings),
+         lesser_findings = ifelse(temp_vote_count_factor < 0, greater_findings_temp, lesser_findings),
+         ma_focus_greater_count_factor = ifelse(temp_vote_count_factor < 0, ma_focus_lesser_count_factor_temp, ma_focus_greater_count_factor),
+         ma_focus_lesser_count_factor = ifelse(temp_vote_count_factor < 0, ma_focus_greater_count_factor_temp, ma_focus_lesser_count_factor),
+         cro_focus_greater_count_factor = ifelse(temp_vote_count_factor < 0, cro_focus_lesser_count_factor_temp, cro_focus_greater_count_factor),
+         cro_focus_lesser_count_factor = ifelse(temp_vote_count_factor < 0, cro_focus_greater_count_factor_temp, cro_focus_lesser_count_factor)) %>%
+  dplyr::select(-c(greater_findings_temp, lesser_findings_temp, 
+                   ma_focus_greater_count_factor_temp, ma_focus_lesser_count_factor_temp, 
+                   cro_focus_greater_count_factor_temp, cro_focus_lesser_count_factor_temp))
+
+### invert greater/lesser for practitioner findings
+factors <- factors %>%
+  mutate(greater_practitioner_temp = greater_practitioner,
          lesser_practitioner_temp = lesser_practitioner,
-         greater_practitioner = ifelse(Name == "Military sanctions", lesser_practitioner_temp, greater_practitioner),
-         lesser_practitioner = ifelse(Name == "Military sanctions", greater_practitioner_temp, lesser_practitioner)) %>%
+         greater_practitioner = ifelse(count_practitioner < 0, lesser_practitioner_temp, greater_practitioner),
+         lesser_practitioner = ifelse(count_practitioner < 0, greater_practitioner_temp, lesser_practitioner)) %>%
   dplyr::select(-c(greater_practitioner_temp, lesser_practitioner_temp))
 
-```
+### mark count_practitioner as NA if == 0
+factors <- factors %>%
+  mutate(count_practitioner = ifelse(count_practitioner == 0, NA, count_practitioner))
 
-Note: Where the research evidence and practitioner knowledge indicate disagreement about the direction of the effect of a specific factor, we do not display either the research finding or the summary of practitioner perspectives on the TfAP website. However, we keep all data about the research evidence and practitioner knowledge in the raw CSV files.
+```
 
 ## Outcomes
 
@@ -1189,13 +1284,13 @@ outcomes <- outcomes %>%
             by = "Tool")
 
 ### save CSV with outcomes information
-write.csv(outcomes, "outcomes.csv", fileEncoding = "UTF-8")
+write.csv(outcomes, "outcomes 2 June 2025.csv", fileEncoding = "UTF-8")
 
 ```
 
 ## "Adverse consequences" addendum
 
-For a select number of tools---in particular, comprehensive economic sanctions---"adverse consequences" comprise a large number of findings about the tool's effect on closely-related outcomes. We assume that these findings are relevant to the consideration of when and how to use these tools most effectively. Because these consequences may be distinct from direct outcomes, however, we also draw attention to separate adverse consequences findings from the literature.
+For select tools---in particular, comprehensive economic sanctions---"adverse consequences" comprise a large number of findings about the tool's effect on closely-related outcomes. We assume that these findings are relevant to the consideration of when and how to use these tools most effectively. Because these consequences may be distinct from direct outcomes, however, we also draw attention to separate adverse consequences findings from the literature.
 
 ``` {r message = FALSE, warning = FALSE}
 
@@ -1207,12 +1302,13 @@ For a select number of tools---in particular, comprehensive economic sanctions--
 
 ### select adverse consequences variables
 adverse_consequences <- full_article_level %>%
+  ungroup() %>%
   subset(effects_type == "Average") %>%
-  dplyr::select(Tool, overall, count, count_adverse, count_without_adverse) %>%
+  dplyr::select(Tool, overall, count, count_adverse, count_without_adverse) %>% 
   distinct()
 
 ### save CSV with adverse consequences findings
-write.csv(adverse_consequences, "adverse_consequences.csv", fileEncoding = "UTF-8")
+write.csv(adverse_consequences, "adverse_consequences 2 June 2025.csv", fileEncoding = "UTF-8")
 
 ```
 
@@ -1221,29 +1317,6 @@ write.csv(adverse_consequences, "adverse_consequences.csv", fileEncoding = "UTF-
 For the website, we converted the quantitative vote count about each factor to a qualitative range of "Stronger," "Moderate," and "Weaker" evidence. We differentiated between qualitative ratings for the practitioner evidence and the research evidence.
 
 ```{r message = FALSE, warning = FALSE}
-
-######################################
-
-### create different names for different direction of research / practitioner evidence (e.g., early/late implementation)
-
-######################################
-
-### add Name.Final for practitioner interview items
-factors <- factors %>%
-  mutate(Name.Final_practitioner = ifelse(is.na(Dedoose.name) & is.na(Name.Final_research), Name, Name.Final_research),
-         Description.Final_practitioner = ifelse(is.na(Dedoose.name) & is.na(Name.Final_research), Description, Description.Final_research))
-
-### change direction of Name.Final_practitioner if sign of research and practitioner don't match
-factors <- factors %>%
-  mutate(switch_practitioner_name = ifelse(temp_vote_count_factor >= 0 & lesser_practitioner < greater_practitioner, 0,
-                                           ifelse(temp_vote_count_factor >= 0 & lesser_practitioner > greater_practitioner, 1,
-                                                  ifelse(temp_vote_count_factor < 0 & lesser_practitioner < greater_practitioner, 1,
-                                                         ifelse(temp_vote_count_factor < 0 & lesser_practitioner > greater_practitioner, 0, NA))))) %>%
-  mutate(Name.Final_practitioner = ifelse(switch_practitioner_name == 1 & temp_vote_count_factor < 0, Name,
-                                          ifelse(switch_practitioner_name == 1 & temp_vote_count_factor >= 0, Inverse.factor, NA))) %>%
-  mutate(Description.Final_practitioner = ifelse(switch_practitioner_name == 1 & temp_vote_count_factor < 0, Description,
-                                                 ifelse(switch_practitioner_name == 1 & temp_vote_count_factor >= 0, Inverse.factor.description, NA))) %>%
-  dplyr::select(-switch_practitioner_name)
   
 ######################################
 
@@ -1253,17 +1326,17 @@ factors <- factors %>%
 
 ### research evidence
 factors <- factors %>%
-  mutate(research_qualitative = ifelse(vote_count > 3, "Stronger",
-                                       ifelse(vote_count <= 3 & vote_count > 1, "Moderate",
-                                              ifelse(vote_count <= 1 & vote_count >= 0, "Weaker",
-                                                     ifelse(vote_count < 0 & vote_count >= -1, "Weaker",
-                                                            ifelse(vote_count < -1 & vote_count >= -3, "Moderate",
-                                                                   ifelse(vote_count <= -3, "Stronger",
+  mutate(research_qualitative = ifelse(vote_count_factor > 3, "Stronger",
+                                       ifelse(vote_count_factor <= 3 & vote_count_factor > 1, "Moderate",
+                                              ifelse(vote_count_factor <= 1 & vote_count_factor >= 0, "Weaker",
+                                                     ifelse(vote_count_factor < 0 & vote_count_factor >= -1, "Weaker",
+                                                            ifelse(vote_count_factor < -1 & vote_count_factor >= -3, "Moderate",
+                                                                   ifelse(vote_count_factor <= -3, "Stronger",
                                                                           NA)))))))
 
-### add "weaker" to targeted sanctions factors with 0 research findings (and some practitioner findings)
+### add "none available" to practitioner factors with 0 research findings
 factors <- factors %>%
-  mutate(research_qualitative = ifelse(Tool == "Targeted sanctions_tool" & is.na(count),
+  mutate(research_qualitative = ifelse(!is.na(count_practitioner) & is.na(count),
                                        "None available", research_qualitative))
 
 ### practitioner evidence
@@ -1272,11 +1345,6 @@ factors <- factors %>%
                                            ifelse(abs(proportion_practitioner) <= 2/3 & abs(proportion_practitioner) > 1/3, "Moderate",
                                                   ifelse(abs(proportion_practitioner) <= 1/3, "Weaker",
                                                          NA))))
-
-### add "weaker" to practitioner factors with 0 practitioner findings (and some research findings)
-factors <- factors %>%
-  mutate(practitioner_qualitative = ifelse(Tool == "Targeted sanctions_tool" & is.na(count_practitioner) | Tool == "Peace operations_tool" & is.na(count_practitioner),
-                                           "Weaker", practitioner_qualitative))
 
 ### create web qualitative language for research findings
 factors <- factors %>%
@@ -1313,17 +1381,57 @@ factors <- factors %>%
                    "Theory.of.change" = "Theory.of.change",
                    "Structural.or.operational" = "Structural.or.operational",
                    "Evidence.review" = "Evidence.review",
-                   "dissuade" = "dissuade",
-                   "degrade" = "degrade",
-                   "protect" = "protect",
-                   "transition" = "transition",
-                   "diplomatic" = "diplomatic",
-                   "informational" = "informational",
-                   "military" = "military",
-                   "economic" = "economic",
-                   "legal" = "legal")) %>%
+                   "Strategies.the.tool.can.support" = "Strategies.the.tool.can.support",
+                   "DIMEL" = "DIMEL")) %>%
   dplyr::rename("Dedoose.name_factor" = "Dedoose.name.x",
                 "Dedoose.name_tool" = "Dedoose.name.y")
+
+######################################
+
+### tool and factor categories
+
+######################################
+
+### strategies (for tools)
+factors <- factors %>%
+  mutate(dissuade = ifelse(grepl("dissuading", Strategies.the.tool.can.support), 1, 
+                           ifelse(is.na(Strategies.the.tool.can.support), NA, 0)),
+         degrade = ifelse(grepl("degrading", Strategies.the.tool.can.support), 1, 
+                          ifelse(is.na(Strategies.the.tool.can.support), NA, 0)), 
+         protect = ifelse(grepl("protecting", Strategies.the.tool.can.support), 1, 
+                          ifelse(is.na(Strategies.the.tool.can.support), NA, 0)),
+         transition = ifelse(grepl("transition", Strategies.the.tool.can.support), 1,
+                             ifelse(is.na(Strategies.the.tool.can.support), NA, 0)))
+
+### DIMEL (for tools)
+factors <- factors %>%
+  mutate(military = ifelse(grepl("Military", DIMEL), 1, 
+                           ifelse(is.na(DIMEL), NA, 0)),
+         diplomatic = ifelse(grepl("Diplomatic", DIMEL), 1, 
+                             ifelse(is.na(DIMEL), NA, 0)),
+         informational = ifelse(grepl("Informational", DIMEL), 1, 
+                                ifelse(is.na(DIMEL), NA, 0)),
+         economic = ifelse(grepl("Economic", DIMEL), 1, 
+                           ifelse(is.na(DIMEL), NA, 0)),
+         legal = ifelse(grepl("Legal", DIMEL), 1, 
+                        ifelse(is.na(DIMEL), NA, 0)))
+
+### family (for factors)    
+factors <- factors %>%
+  mutate(domestic_context = ifelse(grepl("Domestic context", Family), 1,
+                                   ifelse(is.na(Family), NA, 0)),
+         conflict_dynamics = ifelse(grepl("Conflict dynamics", Family), 1,
+                                    ifelse(is.na(Family), NA, 0)),
+         target_characteristics = ifelse(grepl("Target characteristics", Family), 1,
+                                         ifelse(is.na(Family), NA, 0)),
+         implementer_choices = ifelse(grepl("Implementer choices", Family), 1,
+                                      ifelse(is.na(Family), NA, 0)),
+         implementer_characteristics = ifelse(grepl("Implementer characteristics", Family), 1,
+                                              ifelse(is.na(Family), NA, 0)),
+         international_dynamics = ifelse(grepl("International dynamics", Family), 1,
+                                         ifelse(is.na(Family), NA, 0)),
+         tool_specific = ifelse(grepl("factors", Family), 1,
+                                ifelse(is.na(Family), NA, 0)))
 
 ```
          
@@ -1341,17 +1449,17 @@ The final step is downloading the datasets with our analytic results. First, I e
 
 #################################
 
-### [half weighted] relocate factor name to the beginning of the dataset, remove CD variable
+### relocate factor name to the beginning of the dataset, remove CD variable
 factors <- factors %>%
-  relocate(Name.Final_research, tool_name) %>%
+  relocate(Name.Final_research, Name.Final_practitioner, tool_name) %>%
   ungroup() %>%
   dplyr::select(-CD)
 
 ### factor_level spreadsheet
-write.csv(factors, "all_factors.csv")
+write.csv(factors, "all_factors 2 June 2025.csv")
 
 ### article_level
-write.csv(full_article_level, "all_sources.csv", fileEncoding = "UTF-8")
+write.csv(full_article_level, "all_sources 2 June 2025.csv", fileEncoding = "UTF-8")
 
 ```
 
