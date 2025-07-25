@@ -62,7 +62,7 @@ You may download all supporting CSV files from the "Data" folder on this GitHub 
 
 - Factor-level data, based on the practitioner interviews:
 
-  - Targeted sanctinos: *[ts] factors_factor_level.csv*: The summary information from our practitioner interviews about targeted sanctions. Originally, these data were stored in a separate working directory from the peace operations data. In the R codes *practitioner_master* and *master_analysis_2023*, this file is called "factors_factor_level.csv." I've changed the name here for clarity.
+  - Targeted sanctions: *[ts] factors_factor_level.csv*: The summary information from our practitioner interviews about targeted sanctions. Originally, these data were stored in a separate working directory from the peace operations data. In the R codes *practitioner_master* and *master_analysis_2023*, this file is called "factors_factor_level.csv." I've changed the name here for clarity.
   - Peace operations: *[po] factors_factor_level.csv*: The summary information from our practitioner interviews about targeted sanctions. Originally, these data were stored in a separate working directory from the targeted sanctions data. In the R codes *peace_ops_summary* and *master_analysis_2023*, this file is called "factors_factor_level.csv." I've changed the name here for clarity.
 
 - R codes for the practitioner interviews:
