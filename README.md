@@ -1,6 +1,11 @@
 # Master analysis file for Tools for Atrocity Prevention project
 
-The following document annotates the R code for the analysis underlying the [Tools for Atrocity Prevention](https://preventiontools.ushmm.org/) (TfAP) website, a project of the United States Holocaust Memorial Museum's Simon-Skjodt Center for the Prevention of Genocide. The code applies to the current version of the TfAP website, last updated in April 2025. Prior versions of the data and auxiliary files can be found in the following folders: (1) July 2022 (Version 1; [data files](https://github.com/ushmm/atrocity-prevention-data/tree/main/data/2022%20update%20files); [auxiliary files](https://github.com/ushmm/atrocity-prevention-data/tree/main/auxiliary/2022%20update%20files)); (2) April 2024 (Version 2; [data files](https://github.com/ushmm/atrocity-prevention-data/tree/main/data/2024%20update%20files); [auxiliary files](https://github.com/ushmm/atrocity-prevention-data/tree/main/auxiliary/2024%20update%20files)). This is Version 3, updated in April 2025.
+The following document annotates the R code for the analysis underlying the [Tools for Atrocity Prevention](https://preventiontools.ushmm.org/) (TfAP) website, a project of the United States Holocaust Memorial Museum's Simon-Skjodt Center for the Prevention of Genocide. The code applies to the current version of the TfAP website, last updated in April 2025. Prior versions of the data and auxiliary files can be found in the following folders:
+
+1. July 2022 (Version 1; [data files](https://github.com/ushmm/atrocity-prevention-data/tree/main/data/2022%20update%20files); [auxiliary files](https://github.com/ushmm/atrocity-prevention-data/tree/main/auxiliary/2022%20update%20files));
+2. April 2024 (Version 2; [data files](https://github.com/ushmm/atrocity-prevention-data/tree/main/data/2024%20update%20files); [auxiliary files](https://github.com/ushmm/atrocity-prevention-data/tree/main/auxiliary/2024%20update%20files)).
+
+This is Version 3, updated in April 2025.
 
 The principal differences between this code and the April 2024 version are twofold: (1) this version includes an analysis of interviews with 13 practitioners of peace operations, to complement the analysis of interviews with 15 practitioners of targeted sanctions; and (2) this version includes code that addresses circumstances in which practitioner perspectives about the anticipated effect of specific success factors differs from the prevailing research evidence.
 
