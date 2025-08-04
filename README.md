@@ -37,17 +37,17 @@ You may download all supporting CSV files from the "Data" folder on this GitHub 
 
 - *all_sources.csv*: The "study-factor" level dataset that results from the code below.
 
-- *code_guide_2023.csv*: The list of researchers responsible for coding each article, which we use to filter the excerpt-level data from Dedoose.
+- *code_guide_3.csv*: The list of researchers responsible for coding each article, which we use to filter the excerpt-level data from Dedoose.
 
-- *data_dictionary_2023.csv*: A guide to the variables in the *all_factors.csv* and *all_sources.csv* datasets.
+- *data_dictionary_3.csv*: A guide to the variables in the *all_factors.csv* and *all_sources.csv* datasets.
 
-- *excerpts_2023.csv*: The excerpt-level data from Dedoose, the qualitative coding software that we use for this project. This is the cumulative data from Dedoose, combining excerpts from the most recent studies and studies that we included in previous project updates.
+- *excerpts_3.csv*: The excerpt-level data from Dedoose, the qualitative coding software that we use for this project. This is the cumulative data from Dedoose, combining excerpts from the most recent studies and studies that we included in previous project updates.
 
-- *master_codes_2023.csv*: The list of codes that researchers applied to studies in Dedoose.
+- *master_codes_3.csv*: The list of codes that researchers applied to studies in Dedoose.
 
 ## Guide to files in Auxiliary folder
 
-- *analytic_guide_2023.docx*: The Word-formatted version of the analytic guide for coding studies. This document contains descriptive information about factors that are associated with the effectiveness of atrocity prevention tools. 
+- *analytic_guide_3.docx*: The Word-formatted version of the analytic guide for coding studies. This document contains descriptive information about factors that are associated with the effectiveness of atrocity prevention tools. 
 
 - *[for editing] Practitioner factor guide.docx*: The Word-formatted version of the analytic guide associated with the practitioner interviews.
 
@@ -62,8 +62,8 @@ You may download all supporting CSV files from the "Data" folder on this GitHub 
 
 - Factor-level data, based on the practitioner interviews:
 
-  - Targeted sanctions: *[ts] factors_factor_level.csv*: The summary information from our practitioner interviews about targeted sanctions. Originally, these data were stored in a separate working directory from the peace operations data. In the R codes *practitioner_master* and *master_analysis_2023*, this file is called "factors_factor_level.csv." I've changed the name here for clarity.
-  - Peace operations: *[po] factors_factor_level.csv*: The summary information from our practitioner interviews about targeted sanctions. Originally, these data were stored in a separate working directory from the targeted sanctions data. In the R codes *peace_ops_summary* and *master_analysis_2023*, this file is called "factors_factor_level.csv." I've changed the name here for clarity.
+  - Targeted sanctions: *[ts] factors_factor_level.csv*: The summary information from our practitioner interviews about targeted sanctions. Originally, these data were stored in a separate working directory from the peace operations data. In the R codes *practitioner_master* and *master_analysis_3*, this file is called "factors_factor_level.csv." I've changed the name here for clarity.
+  - Peace operations: *[po] factors_factor_level.csv*: The summary information from our practitioner interviews about targeted sanctions. Originally, these data were stored in a separate working directory from the targeted sanctions data. In the R codes *peace_ops_summary* and *master_analysis_3*, this file is called "factors_factor_level.csv." I've changed the name here for clarity.
 
 - R codes for the practitioner interviews:
 
@@ -81,7 +81,7 @@ Below, I detail how I transformed, filtered, and cleaned the Dedoose data for fu
 ```{r message=FALSE, warning=FALSE}
 
 ### load excerpt-level data - download only current year from Dedoose, need to remove erroneous empty last column
-excerpts <- read.csv("excerpts_2023.csv", na.strings = "", check.names = F) %>%
+excerpts <- read.csv("excerpts_3.csv", na.strings = "", check.names = F) %>%
   dplyr::select(-330)
 
 ### change variable names with spaces to periods
@@ -99,15 +99,15 @@ excerpts <- excerpts %>%
 
 ```
 
-Because multiple project researchers coded each article, we used an ordered list of coders to filter excerpt codes for further analysis. The ordered list for each article is located in the document *code_guide_2023.csv*. We also used the document *master_codes_2023.csv* to ensure that we had downloaded excerpts from the correct list of codes. To filter out excluded codes, we appended these documents to the original excerpts dataset.
+Because multiple project researchers coded each article, we used an ordered list of coders to filter excerpt codes for further analysis. The ordered list for each article is located in the document *code_guide_3.csv*. We also used the document *master_codes_3.csv* to ensure that we had downloaded excerpts from the correct list of codes. To filter out excluded codes, we appended these documents to the original excerpts dataset.
 
 ```{r message = FALSE, warning = FALSE}
 
 ### code_guide with key to codes
-code_guide <- read.csv("code_guide_2023.csv", na.strings = "")
+code_guide <- read.csv("code_guide_3.csv", na.strings = "")
 
 ### master list of codes
-codes <- read.csv("master_codes_2023.csv")
+codes <- read.csv("master_codes_3.csv")
 
 ### identify correct codes
 
@@ -695,7 +695,7 @@ I combined this reference information with the information in the study-level da
 ##########################################
 
 ### load references CSV, subset to references that include "documentName" in the extra column
-references <- read.csv("zotero_2023.csv", encoding = "UTF-8") %>%
+references <- read.csv("zotero_3.csv", encoding = "UTF-8") %>%
   subset(grepl("documentName", Extra))
 
 ### extract list of index names in Extra column, separate those with semicolons
@@ -905,7 +905,7 @@ references_index <- references_index %>%
   relocate(article_index, full_citation)
 
 ### download list of citations
-write.csv(references_index, "citations_2023.csv", fileEncoding = "UTF-8")
+write.csv(references_index, "citations_3.csv", fileEncoding = "UTF-8")
 
 ### combine citations with article_level dataset, replace (Dedoose) Year with Publication.Year and rename as Year
 full_article_level <- full_article_level %>%
@@ -957,17 +957,17 @@ The project's "analytic guide" includes descriptive information about our defini
 factors <- evidence
 
 ### reset working directory
-work_dir_ag_2023 <- "G:/.shortcut-targets-by-id/1gvhqlwU_FnML3ntwXRBg_r48BjM6CRsK/Lessons learned/Research evidence review/Analysis/2023/Analytic guide"
-setwd(work_dir_ag_2023)
+work_dir_ag_3 <- "G:/.shortcut-targets-by-id/1gvhqlwU_FnML3ntwXRBg_r48BjM6CRsK/Lessons learned/Research evidence review/Analysis/V3/Analytic guide"
+setwd(work_dir_ag_3)
 
 ### rerun analytic guide code
-source("G:/.shortcut-targets-by-id/1gvhqlwU_FnML3ntwXRBg_r48BjM6CRsK/Lessons learned/Research evidence review/Analysis/2023/Analytic guide/analytic_guide_2023.R")
+source("G:/.shortcut-targets-by-id/1gvhqlwU_FnML3ntwXRBg_r48BjM6CRsK/Lessons learned/Research evidence review/Analysis/V3/Analytic guide/analytic_guide_3.R")
 
 ### load analytic guide
-analytic_guide <- read.csv("analytic_guide_2023.csv")
+analytic_guide <- read.csv("analytic_guide_3.csv")
 
 ### reset working directory to main analysis folder
-setwd(work_dir_2023)
+setwd(work_dir_3)
 
 ### subset analytic guide to tools
 guide_tools <- analytic_guide %>%
@@ -1058,7 +1058,7 @@ factors_master <- factors %>%
 factors <- rbind(factors_master, factors_targeted_sanctions)
 
 ### reset working directory
-setwd(work_dir_2023)
+setwd(work_dir_3)
 
 ```
 
@@ -1119,7 +1119,7 @@ factors_master <- factors %>%
 factors <- rbind(factors_master, factors_peace_ops)
 
 ### reset working directory
-setwd(work_dir_2023)
+setwd(work_dir_3)
 
 ``` 
 
@@ -1474,7 +1474,8 @@ write.csv(full_article_level, "all_sources 2 June 2025.csv", fileEncoding = "UTF
 #############################################
 
 ### set working directory for CSV files
-setwd(work_dir_2023_csv)
+work_dir_3_csv <- "G:/.shortcut-targets-by-id/1gvhqlwU_FnML3ntwXRBg_r48BjM6CRsK/Lessons Learned/Research evidence review/Analysis/2023/Website - CSV files"
+setwd(work_dir_3_csv)
 
 ### for loop for storage of CSV files - factors
 
@@ -1526,13 +1527,13 @@ for(i in 1:length(tools)) {
 factors <- factors %>%
   dplyr::select(-Tool)
 
-write.csv(factors, "all_factors_2023.csv")
+write.csv(factors, "all_factors_3.csv")
 
 ### full_article_level
-write.csv(full_article_level, "all_sources_2023.csv", fileEncoding = "UTF-8")
+write.csv(full_article_level, "all_sources_3.csv", fileEncoding = "UTF-8")
 
 ### CSV with outcomes information
-write.csv(outcomes, "outcomes_2023.csv", fileEncoding = "UTF-8")
+write.csv(outcomes, "outcomes_3.csv", fileEncoding = "UTF-8")
 
 ```
 
