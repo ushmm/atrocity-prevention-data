@@ -1,0 +1,406 @@
+---
+title: "Peace operations practitioner interviews: Summary of contextual and design factors"
+author: "Daniel Solomon (with Tallan Donine and Mohammad Khan)"
+date: '`r Sys.Date()`'
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+This document summarizes the contextual and design factors referenced during interviews with 13 peace operations practitioners from XXX [Alison Giffen interview] to July 2023 (Larry Swift). Given the large number of factors that interviewees referenced, I distill the list of discrete factors into general categories that align with our existing systematic-review codebook, where possible. 
+
+```{r, message = FALSE, echo = FALSE}
+
+# Packages
+
+### This analysis relies on the following packages:
+
+### load packages
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+
+```
+
+# Overall effects
+
+``` {r}
+
+### load survey data, subset to peacekeeping
+peace_ops_overall_effects <- read.csv("LL practitioner survey.csv") %>%
+  subset(Q314 == "Peacekeeping" & Finished == "True")
+
+### average length of interview
+mean(as.numeric(peace_ops_overall_effects$Q324.1), na.rm = TRUE)
+
+### limit to overall effects question, assign respondent index
+peace_ops_overall_effects_summary <- peace_ops_overall_effects %>%
+  dplyr::select(Q1) %>%
+  mutate(respondent_index = seq(1:n()))
+
+### summarize
+peace_ops_overall_effects_summary <- peace_ops_overall_effects_summary %>%
+  mutate(Never = ifelse(Q1 == "Never", 1, 0),
+         Rarely = ifelse(Q1 == "Rarely", 1, 0),
+         Sometimes = ifelse(Q1 == "Sometimes", 1, 0),
+         Often = ifelse(Q1 == "Often", 1, 0),
+         Always = ifelse(Q1 == "Always", 1, 0)) %>%
+  dplyr::select(-Q1, -respondent_index) %>%
+  mutate(Never = sum(Never),
+         Rarely = sum(Rarely),
+         Sometimes = sum(Sometimes),
+         Often = sum(Often),
+         Always = sum(Always)) %>%
+  distinct() %>%
+  t() %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column(., var = "values") 
+
+### order levels
+peace_ops_overall_effects_summary$values <- factor(peace_ops_overall_effects_summary$values, levels = c("Never", "Rarely", "Sometimes", "Often", "Always"))
+
+### add fonts
+library(showtext)
+font_add(family = "Arial Narrow Bold", regular = "./Arial Narrow Bold.ttf")
+font_add(family = "Times New Roman", regular = "./Times New Roman.ttf")
+showtext_auto()
+
+### ggplot
+peace_ops_overall_effects_summary %>%
+  ggplot(aes(x = V1, y = values)) +
+  geom_bar(stat = "identity",
+           fill = "#E67700") +
+  theme_bw() +
+  theme(text = element_text(family = "Times New Roman", size = 30),
+        axis.text.x = element_text(family = "Times New Roman", size = 30),
+        axis.text.y = element_text(family = "Times New Roman", size = 30)) +
+  labs(x = "Number of responses",
+       y = "Frequency of success")
+
+### save plot
+ggsave("figure_1.png", height = 3, width = 7)
+
+```
+
+# Practitioner background
+
+``` {r}
+
+### us agency
+print(peace_ops_overall_effects$Q307.1)
+print(peace_ops_overall_effects$Q307_7_TEXT)
+
+### us presidential administration
+print(peace_ops_overall_effects$Q308.1)
+print(peace_ops_overall_effects$Q308_5_TEXT)
+
+### un sg administration
+print(peace_ops_overall_effects$Q308_5_TEXT)
+
+### number of years inside government
+print(peace_ops_overall_effects$Q309.1)
+
+### number of years outside government
+print(peace_ops_overall_effects$Q310.1)
+
+```
+
+# Background on success factors
+
+``` {r, include = FALSE}
+
+### load data
+peace_ops <- read.csv("[with negative coding] Coding LL CF_DF by Interview - Sheet1.csv")
+
+```
+
+In 13 interviews, peace operations practitioners described 177 separate factors that are associated with the greater effectiveness of peace operations in helping prevent mass atrocities. The procedure for collecting and categorizing these factors was as follows:
+
+- Using the "LL practitioner survey" Qualtrics form, Tallan used the interview transcripts to record each separate factor that interviewees referenced in conversation. Tallan recorded these separate factors as the interviewees referenced them. In some instances, this approach led to us to record entries---such as "the peacekeeping mission follows three principles: impartiality, consent, and the use of force in defense of the peacekeeping mandate" (code: PRINC)---that combine multiple discrete factors.
+
+- Using Tallan's Qualtrics entries, Mohammad listed out each factor, assigned an entry code to it, and sorted each factor into provisional "contextual" and "design" categories. He also recorded each interview that referenced the relevant factor code. The entry codes assist with the computational task of identifying the interviews associated with each "consolidated" factor code, the process for which I describe in the next bullet. The results of his original sorting task are available in this [Google Sheet](https://docs.google.com/spreadsheets/d/11OXqdd1_ySZYzwRdEYDYJwQTHsC90UF9TM6p87RS5ic/edit#gid=0).
+
+- Lastly, I used the 2023 version of the systematic-review analytic guide to align interviewee entries with factors that we recorded in the peace operations literature and relevant research about other atrocity prevention tools. Where the factor codes did not appear in our original analytic guide, I created a new factor code and associated description. For a small subset of codes, I indicated the code as "NA" to indicate that we should exclude the factor from our final analysis; I describe the justifications for these NA codes below.
+
+I categorize and summarize the results of these interviews below. To put the bottom line up front, I first summarize the extent to which each interviewee references each factor during our discussion. I list out all 177 references, comparing (1) the number of interviewees that referenced that factor to (2) the number of interviewees that referenced each more-general category into which I sorted the entries. Second, I detail how I sorted each of the 177 practitioner entries between (1) pre-existing factors; (2) new factors; (3) a NA category; and (4) a mixed-effects category.
+
+# Consensus among interviewees
+
+``` {r, echo = FALSE}
+
+### number of old factors
+pre_existing <- peace_ops %>%
+  subset(Equivalent.code.in.Dedoose. == "Yes")
+count_pre_existing <- nrow(pre_existing)
+
+### number of new factors
+new <- peace_ops %>%
+  subset(Equivalent.code.in.Dedoose. == "No")
+count_new <- nrow(new)
+
+### list of new factors
+list_new_factors <- new %>%
+  dplyr::select(Factor.type, Suggested.final.code.description..from.Dedoose.codes..if.possible., Description.of.greater.effectiveness.factor..via.analytic.guide.or..if..No..in.Column.F..new.) %>%
+  arrange(Suggested.final.code.description..from.Dedoose.codes..if.possible.) %>%
+  distinct()
+
+### write csv of new factors
+write.csv(list_new_factors, "list_new_factors.csv")
+
+```
+
+In the following chart, I present the number and proportion of interviewees that referenced each success factor. I present (1) each of the 177 entries from the interviews; (2) the general category that I recommend we sort the entry into; (3) the number and proportion of interviews that referenced the entry; and (4) the number and proportion of interviews that referenced the general category.
+
+A few details about how I categorized the various interview entries:
+
+1. *Consolidated codes*: Of the 177 factors referenced in the interviews, I identified 118 entries that resembled a pre-existing success factor from the systematic-review codebook.^[Note: Mohammad had identified 177 interview entries, but forgot to identify the interview associated with one, "Extent of military deployed to resolve greivances." I omit this entry because I was not able to reconstruct this particular reference from the Qualtrics transcript data.] I collapsed these entries into the pre-existing analytic-guide code that bore the closest conceptual resemblance. In total, this categorization process modified the 118 entries into 36 discrete systematic-review codes.
+
+2. *New codes*: I identified 49 entries that were not associated with one of the factors in the original review codebook. I also collapsed these entries into common categories. In total, this categorization process modified the 46 entries into 20 new factors. These factors include both potentially cross-cutting categories, such as "a unified UN Security Council," and more domain-specific issues such as human rights monitoring or the widespread presence of peacekeepers throughout the country in which they are deployed.
+
+3. *Excluded entries*: Lastly, I identified 10 entries that did not obviously fit into either a pre-existing or a new factor category. I excluded these entries for three reasons. First, some entries failed to meet our basic standard that success factors should have some sort of variable value, such as indicators of presence / absence or extent. For example, the factor "norms around UN intervention" is not associated with a variable quality or quantity; instead, it describes a set of conditions that affect all UN peace operations. Second, some interviewees indicated that the factor they referenced combined multiple separate factors, without specifying the effect associated with any of the factor's component parts. Third, one entry (a "strong, accountable security sector", code DEMO_SEC) more closely approximates the concept of a "control variable"---an enabling condition for atrocity prevention, generally, but not one that contributes to the effectiveness of peace operations in achieving atrocity prevention goals.
+
+``` {r, echo = FALSE}
+
+### limit to relevant variables
+peace_ops_list <- peace_ops %>%
+  dplyr::select(Description,
+                Equivalent.code.in.Dedoose.,
+                Suggested.final.code.description..from.Dedoose.codes..if.possible.,
+                Description.of.greater.effectiveness.factor..via.analytic.guide.or..if..No..in.Column.F..new.,
+                No.or.mixed.effect.for.factor.,
+                Direction.of.no_mixed_effect.vote,
+                10:22) %>%
+  dplyr::rename(original_description = Description,
+                short_new_description = Suggested.final.code.description..from.Dedoose.codes..if.possible.,
+                long_new_description = Description.of.greater.effectiveness.factor..via.analytic.guide.or..if..No..in.Column.F..new.)
+
+```
+
+4. *Mixed effects*: In general, Tallan entered the factors into Qualtrics using their "greater effectiveness" value, so that the language for each success factor refers to the conditions under which that variable contributes to the tool's relative success. For some factors, such as "biased intervention," the success-factor framing framing is straightforward: in the example, Tallan simply recorded the "lack of bias" as the relevant success factor. However, interviewees also attributed no effect or a mixed effect to some factors. The five factors that fell into this category are:
+
+  - Whether the peace operation is authorized to use force;
+  - Whether the conflict involves access to significant natural resources;
+  - The extent to which government are responsible for mass atrocities;
+  - The extent to which non-state actors are responsible for mass atrocities; and
+  - The involvement of other countries in the region.
+  
+For each of these factors, we interpreted each interview that referenced the factor as an attribute that contributes to the effectiveness of peace operations as a "vote" *in favor* of the factor, and each interview that referenced the factor as a counterproductive attribute as a vote *against.* If (1) the cumulative vote had a *positive* value and an interviewee indicated that a factor had no effect or a mixed effect on the effectiveness of the peace operation, we marked that interview as a vote *against* the factor; if the cumulative vote had a *negative* value and an interviewee indicated that a fact had no effect or a mixed effect, we marked that interview as a vote *for* the factor. To identify the final "vote count" for the factor, we added the votes in favor and subtracted the total number of votes against the factor. If the final vote count for any factor was zero, we excluded that factor from the sample.
+
+``` {r}
+
+### edit NA factors
+peace_ops_list <- peace_ops_list %>%
+  mutate(short_new_description = ifelse(is.na(short_new_description), "NA - Unclear or invariable value", short_new_description),
+         long_new_description = ifelse(short_new_description == "NA - Unclear or invariable value", "NA - Unclear or invariable value", long_new_description))
+
+### omit NA - unclear or invariable value
+peace_ops_list <- peace_ops_list %>%
+  subset(short_new_description != "NA - Unclear or invariable value")
+
+### edit no or mixed effects
+peace_ops_list <- peace_ops_list %>%
+  mutate(No.or.mixed.effect.for.factor. = ifelse(No.or.mixed.effect.for.factor. == "", NA, No.or.mixed.effect.for.factor.))
+
+### pivot longer
+peace_ops_long <- peace_ops_list %>%
+  pivot_longer(cols = -c(original_description, short_new_description, Equivalent.code.in.Dedoose., long_new_description, No.or.mixed.effect.for.factor., Direction.of.no_mixed_effect.vote),
+               names_to = "interview",
+               values_to = "mentioned")
+
+### remove NAs
+peace_ops_long <- peace_ops_long %>%
+  subset(!is.na(mentioned))
+
+### change value of negative / no or mixed effect
+peace_ops_long <- peace_ops_long %>%
+  mutate(mentioned = ifelse(Direction.of.no_mixed_effect.vote == "Negative", -1,
+                            ifelse(Direction.of.no_mixed_effect.vote == "No or mixed effect", NA, mentioned)))
+
+### number and proportion of interviewee mentions, by new category
+peace_ops_long_aggregated <- peace_ops_long %>%
+  ungroup() %>%
+  dplyr::select(short_new_description, interview, mentioned) %>%
+  distinct() %>%
+  group_by(short_new_description) %>%
+  mutate(temp_count_practitioner = sum(mentioned, na.rm = TRUE),
+         temp_count_practitioner = ifelse(is.na(temp_count_practitioner), 0, temp_count_practitioner),
+         number_practitioners = 13)
+
+### add description of effect
+peace_ops_long_aggregated <- peace_ops_long_aggregated %>%
+  mutate(effect = ifelse(mentioned == 1, "Positive",
+                         ifelse(mentioned == -1, "Negative", mentioned))) %>%
+  mutate(effect = ifelse(is.na(effect), "No or mixed effect", effect))
+
+### add no/mixed effect
+peace_ops_long_aggregated <- peace_ops_long_aggregated %>%
+  mutate(mentioned = ifelse(is.na(mentioned) & temp_count_practitioner > 0, -1,
+                            ifelse(is.na(mentioned) & temp_count_practitioner < 0, 1, mentioned))) %>%
+  group_by(short_new_description) %>%
+  mutate(count_practitioner = sum(mentioned, na.rm = TRUE),
+         proportion_practitioner = count_practitioner / number_practitioners)
+
+### add variables summarizing greater, lesser, and no_mixed
+peace_ops_long_aggregated <- peace_ops_long_aggregated %>%
+  mutate(greater_practitioner = ifelse(effect == "Positive", 1, 0),
+         lesser_practitioner = ifelse(effect == "Negative", 1, 0),
+         no_mixed_practitioner = ifelse(effect == "No or mixed effect", 1, 0)) %>%
+  group_by(short_new_description) %>%
+  mutate(greater_practitioner = sum(greater_practitioner),
+         lesser_practitioner = sum(lesser_practitioner),
+         no_mixed_practitioner = sum(no_mixed_practitioner)) %>%
+  ungroup()
+
+### trim
+peace_ops_factors <- peace_ops_long_aggregated %>%
+  dplyr::select(-interview, -mentioned, -effect) %>%
+  distinct()
+
+### disaggregated by interview
+peace_ops_interviews <- peace_ops_long_aggregated %>%
+  dplyr::select(-mentioned)
+
+```
+
+I attach information from the analytic guide to the summary of the practitioner interviews.
+
+``` {r}
+
+### load Word doc using OFFICER
+library(officer)
+doc_analytic_guide <- read_docx("[for editing] Practitioner factor guide.docx")
+
+### Word doc as tibble
+tbl_analytic_guide <- docx_summary(doc_analytic_guide) %>%
+  as_tibble() %>%
+  distinct()
+
+### fill in header text by num_id
+analytic_guide <- tbl_analytic_guide
+
+analytic_guide <- analytic_guide %>%
+  fill(num_id, .direction = "up")
+
+### remove blanks
+analytic_guide <- analytic_guide %>%
+  subset(text != "")
+
+### remove level, paragraph, content_type, style_name
+analytic_guide <- analytic_guide %>%
+  dplyr::select(doc_index, text, num_id)
+
+### create category types
+analytic_guide <- analytic_guide %>%
+  separate(text, c("type", "text"), ": ")
+
+### create category for tool and factor names (for all non-blank cells)
+analytic_guide <- analytic_guide %>%
+  mutate(text = ifelse(type != "" & is.na(text), type, text), 
+         type = ifelse(type == text, "Name", type))
+
+### pivot longer dataset to wider, fill in blanks by num_id, deduplicate
+analytic_guide_wider <- analytic_guide %>%
+  pivot_wider(names_from = type,
+              values_from = text) %>%
+  group_by(num_id) %>%
+  fill(-num_id) %>%
+  fill(-num_id, .direction = "up") %>%
+  dplyr::select(-doc_index) %>%
+  distinct()
+
+### set NA values as NA
+library(naniar)
+analytic_guide_wider <- analytic_guide_wider %>%
+  replace_with_na_all(condition = ~.x == "NA")
+
+### trim whitespace
+analytic_guide_wider <- analytic_guide_wider %>%
+  mutate(Name = trimws(Name))
+
+#######################################################
+
+### Merge analytic guide with practitioner data
+
+#######################################################
+
+### left join practitioner data to analytic_guide_wider
+factors <- peace_ops_factors %>%
+  left_join(., analytic_guide_wider,
+            by = c("short_new_description" = "Name"))
+
+```
+
+I create two CSV files---the first, disaggregated by interview, and the second, aggregated by factor.
+
+``` {r}
+
+########################################################
+
+### Export data
+
+########################################################
+
+### trim variables
+factors <- factors %>%
+  ungroup() %>%
+  dplyr::select(short_new_description, `Dedoose name`, count_practitioner, proportion_practitioner, number_practitioners, greater_practitioner, lesser_practitioner, no_mixed_practitioner, Description, `Inverse factor`, `Inverse factor description`, `Contextual or design factor`, Family) %>%
+  distinct()
+
+### interview data
+factors_interview_level <- peace_ops_interviews
+
+### write csv file disaggregated by practitioner
+write.csv(factors_interview_level, "factors_interview_level.csv")
+
+### write csv file at factor level
+factors_factor_level <- factors
+
+write.csv(factors_factor_level, "factors_factor_level.csv")
+
+```
+
+I print the final list of factors for the PDF report.
+
+``` {r, echo = FALSE}
+
+### subset to major factors
+peace_ops_print_major <- factors %>%
+  ungroup() %>%
+  dplyr::select(short_new_description, Description, greater_practitioner, lesser_practitioner, no_mixed_practitioner) %>%
+  subset(greater_practitioner >= 6.5) %>%
+  distinct() %>%
+  arrange(desc(greater_practitioner))
+
+### rewrite numbers
+peace_ops_print_major <- peace_ops_print_major %>%
+  mutate(greater_respondents = paste0(greater_practitioner, "/13 (", round(greater_practitioner/13, 2) * 100, "%)")) %>%
+  mutate(lesser_respondents = paste0(lesser_practitioner, "/13 (", round(lesser_practitioner/13, 2) * 100, "%)")) %>%
+  mutate(no_mixed_respondents = paste0(no_mixed_practitioner, "/13 (", round(no_mixed_practitioner/13, 2) * 100, "%)")) %>%
+  dplyr::select(short_new_description, Description, greater_respondents, lesser_respondents, no_mixed_respondents)
+  
+### write CSV for major factors
+write.csv(peace_ops_print_major, "peace_ops_factors_major.csv")
+
+### arrange peace_ops_print_all
+peace_ops_print_all <- factors %>%
+  ungroup() %>%
+  dplyr::select(short_new_description, Description, greater_practitioner, lesser_practitioner, no_mixed_practitioner) %>%
+  distinct() %>%
+  arrange(desc(greater_practitioner)) %>%
+  subset(!is.na(greater_practitioner))
+
+### rewrite numbers
+peace_ops_print_all <- peace_ops_print_all %>%
+  mutate(greater_respondents = paste0(greater_practitioner, "/13 (", round(greater_practitioner/13, 2) * 100, "%)")) %>%
+  mutate(lesser_respondents = paste0(lesser_practitioner, "/13 (", round(lesser_practitioner/13, 2) * 100, "%)")) %>%
+  mutate(no_mixed_respondents = paste0(no_mixed_practitioner, "/13 (", round(no_mixed_practitioner/13, 2) * 100, "%)")) %>%
+  dplyr::select(short_new_description, Description, greater_respondents, lesser_respondents, no_mixed_respondents)
+
+### write CSV for all factors
+write.csv(peace_ops_print_all, "peace_ops_factors_all.csv")
+
+```
