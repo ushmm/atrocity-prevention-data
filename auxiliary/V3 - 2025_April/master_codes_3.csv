@@ -1,0 +1,254 @@
+Code type,Code
+CD,Democracy
+CD,Anocracy or hybrid regime
+CD,Rebel control of territory
+CD,History of tool use
+CD,Cooperation_consent
+CD,Highly developed state
+CD,Local support for tool
+CD,National atrocity prevention efforts
+CD,Domestic justice or human rights infrastructure
+CD,Ripeness
+CD,War weariness
+CD,Difficult terrain
+CD,Conventional tactics
+CD,Guerrilla warfare
+CD,History of compromise
+CD,History of conflict
+CD,Comprehensive_settlement_or_peace_agreement
+CD,Atrocities by Government
+CD,Atrocities by NSAGs
+CD,Atrocities by GOVT and NSAGs
+CD,Interstate
+CD,Intrastate
+CD,Ongoing armed conflict
+CD,External_assistance
+CD,More than two parties
+CD,Long conflict
+CD,High intensity conflict
+CD,Safe haven for perpetrator
+CD,Strong spoiler groups
+CD,Strong government
+CD,Strong NSAG
+CD,Balance of power or stalemate
+CD,Peace agreements involving amnesties
+CD,UN mandate
+CD,International support or coordination
+CD,Severe HR violations
+CD,Atrocity-justifying ideology or revenge
+CD,Rational
+CD,Top leader or high status
+CD,Leaders and followers
+CD,Large number of targets
+CD,Foreign aid dependency
+CD,Priority of reputation
+CD,Risk tolerance of target
+CD,State target
+CD,Hierarchical
+CD,Established
+CD,Popular support
+CD,Religious
+CD,Transnational
+CD,Access to resources
+CD,Civilian_implementer
+CD,NGO implementer
+CD,Adversary_implementer
+CD,State implementer
+CD,Media implementer
+CD,International organization implementer
+CD,Knowledge
+CD,Experience
+CD,Skills
+CD,Democratic implementer
+CD,Multiple_competitive_implementers
+CD,Clear_command_and_control
+CD,Unrealistic_expectations
+CD,Strong leadership
+CD,Strong HR record
+CD,Commitment
+CD,Implementer leverage
+CD,Local outreach
+CD,Public communication
+CD,Private communication to target
+CD,Biased intervener or intervention
+CD,Multi_tool
+CD,Consistency over time
+CD,Early_in_conflict
+CD,Multiple uses
+CD,Monitoring
+CD,Threat of use of tool
+CD,Clear policy objectives
+CD,Official_mediation
+CD,Multiple_types_of_mediation
+CD,Conflict_party_initiates_mediation
+CD,Exclusion of spoilers
+CD,Initiating investigation
+CD,Arrest warrant
+CD,Domestic prosecution
+CD,International prosecution
+CD,Witness protection
+CD,Perp_awareness of the international justice system
+CD,UNSC referral
+CD,Preference for domestic justice
+CD,High quantity of support
+CD,Police
+CD,Observer mission
+CD,Protection_of_civilians_mandate
+CD,Multidimensional_mandate
+CD,Humanitarian_mission
+CD,DDR_mandate
+CD,Large_force
+CD,Diversity of troop-contributing countries
+CD,Ability_to_use_force
+CD,Election_engagement
+CD,Troops
+CD,Use_of_safe_areas
+CD,Use_of_private_contractors
+CD,Civilian_component
+CD,Ability_to_separate_combatants
+Outcome,Mass atrocities
+Outcome,Violence against civilians
+Outcome,Human rights violations
+Outcome,Conflict_outcome
+Outcome,Adverse consequences
+Overall effects,Decreases mass atrocities or CROs 
+Overall effects,Mixed effect on mass atrocities or CROs
+Overall effects,Increases mass atrocities or CROs
+Overall effects,No measurable effect on mass atrocities or CROs
+Factor effects,The factor is associated with greater effectiveness of the tool in reducing mass atrocities or CROs
+Factor effects,The factor is associated with lesser effectiveness of the tool in reducing mass atrocities or CROs 
+Factor effects,The factor has no or mixed effects on the effectiveness of the tool in reducing mass atrocities or CROs 
+Tool,Peace operations_tool
+Tool,Mediation_tool
+Tool,Prosecutions_tool
+Tool,Support to non-state armed groups_tool
+Tool,Targeted sanctions_tool
+Tool,Fact finding_tool
+Tool,Naming_and_shaming_tool
+Tool,Military intervention_tool
+Tool,Diplomatic sanctions_tool
+Tool,Comprehensive economic sanctions_tool
+Tool,Arms embargoes_tool
+Tool,Security guarantees_tool
+Tool,Security assistance_tool
+Tool,Development assistance_tool
+Tool,Amnesties_tool
+Tool,Support civilian self-protection_tool
+Gender,Single_authored_male
+Gender,Single_authored_female
+Gender,Co_authored_male
+Gender,Co_authored_female
+Gender,Co_authored_mixed_gender_team
+Publication,Peer-reviewed journal article
+Publication,Book chapter
+Publication,Organizational publication
+Publication,Unpublished manuscript
+Empirical,One case study
+Empirical,Comparison of greater than one case
+Empirical,Unclear
+Method,No discernible method
+Qual,Process tracing
+Qual,Structured case comparison
+Quant,Simple probability
+Quant,Regression
+Quant,Statistics with an identification strategy
+Quant,Fixed or random effects
+CD,Diaspora implementer
+CD,Military regime
+CD,Nationalist political leverage
+CD,Reliance on international trade and investment
+CD,Colonial history
+CD,Non-politicized_naming_and_shaming
+CD,Multiple_types_of_sanctions
+CD,Terror group
+CD,Inclusive of diverse actors
+CD,Ethnic diversity
+CD,Cohesiveness of conflict parties
+CD,Rebel political wing
+CD,Shared_membership
+CD,Neighbor implementer
+CD,Similar legal systems
+CD,Diplomatic ties
+CD,Multiple mediators
+CD,Western implementer
+CD,Cohesive implementer
+CD,Decisive strategy
+CD,Limited scope
+CD,Neutral venue
+CD,Inclusive to all parties
+CD,Addresses internal and external issues
+CD,Indirect_mediation
+CD,Leadership change
+CD,Addresses root causes
+CD,Use of tool regionally
+CD,Imbalance_wealth
+CD,War of secession
+CD,Ethnic conflict
+CD,Military victory
+CD,Domestic implementer
+CD,Change of mediator
+CD,Sequenced approach
+CD,Ethnic exclusion
+CD,Directive_mediation
+CD,Provision of troops
+CD,Money or arms support
+CD,Rebel safe haven
+CD,Domestic_punishment_likely
+CD,Prosecutions_occur_after _negotiated_settlement
+CD,Indictment
+CD,Investigations_transferred_to_pre-trial_chamber
+CD,Preliminary_examination
+CD,Request_for_arrest_warrants
+CD,Conviction_or_severe_punishment
+CD,Flexibility_and_linkage_to_behavior
+CD,Member of the implementing institution
+CD,High economic cost
+CD,Active conflict_parties
+CD,Moderate policy goal
+CD,Leader family members
+CD,Aid conditionalities
+CD,Great power competition
+CD,High-risk state
+CD,Conflict termination goals
+CD,Legal lootable resources
+CD,Target_resource_concessions
+CD,Government_intervention
+CD,Rebel_intervention
+CD,Perpetrator_intervention
+CD,Neutral_intervention
+CD,Non_lootable_resources
+CD,Strategy_targets_civilians
+CD,Implementer_regime_change
+CD,Counterterrorism_objective
+CD,Democratization_mandate
+CD,Independent_agenda
+CD,Strategic_interest
+CD,Leaders_not_comply
+CD,Large_money_transfers
+CD,Amnesty_serious_violations
+CD,Limited_timespan
+CD,Amnesty_relevant_parties
+CD,Awareness_tool
+CD,Promise_use_tool
+CD,Economic_shock
+CD,Inflation
+CD,Neighbor_state_support
+CD,Humanitarian_aid
+CD,Strong_civil_society
+CD,Airpower
+CD,Concentrated_disbursement
+CD,Number_external_sponsors
+CD,Corrupt
+CD,International_exposure
+CD,Accountability_enforcement
+CD,Education_assistance
+CD,Human_rights_goals
+CD,Visible_HR_abuses
+CD,Degrade_constrain
+CD,Multiple_types_of_aid
+CD,Humanitarian_exemptions
+CD,Multiple_specialized_units
+CD,Peacekeepers_involved_mediation
+CD,Women_peacekeepers
+CD,Governance_assistance
+CD,Cash_assistance
